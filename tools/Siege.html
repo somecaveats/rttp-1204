@@ -108,6 +108,7 @@ input.roll:focus{outline:3px solid #8C93A8}
 .so td.nm{white-space:nowrap}
 .so td.tier{font-size:13px;letter-spacing:.06em;text-transform:uppercase;color:var(--mute);width:170px}
 .so select{font:inherit;font-size:18px;padding:4px 6px;border:1px solid var(--line);border-radius:6px;background:#fff;color:var(--navy)}
+.so .tie{display:block;margin-top:3px;width:max-content;font-size:11px;letter-spacing:.06em;font-weight:700;color:var(--amber);background:var(--amberbg);border:1px dashed var(--amber);border-radius:4px;padding:1px 6px}
 .so td.slot{font-weight:600;color:var(--navy);white-space:nowrap;width:150px}
 .so td.slot .cd{font-size:13px;color:var(--mute);font-weight:500;margin-left:4px}
 .so td.mv{width:60px;white-space:nowrap}
@@ -390,15 +391,19 @@ function renderSack(){
   if(!so){$("sub").textContent="The city hasn’t fallen yet.";$("main").className="one";$("main").innerHTML="";$("ctx").innerHTML="";return}
   $("sub").innerHTML="Choose where to sack, in this order. Each region’s places fill in the order it is chosen.";
   const {used,res}=slots(so.ids),ch=D().sack.ch,curIdx=so.ids.findIndex(id=>!ch[id]);
+  // Players in the same group with the same fama are tied: the instructor rolls a die and reorders with the arrows.
+  const nowF=famaMap(9),pl=D().r3.pl,tieKey=id=>so.tier[id]+"|"+(so.tier[id]===1?(+pl[id]||0):"")+"|"+nowF[id],tieN={};
+  so.ids.forEach(id=>{if(so.tier[id]!==0&&so.tier[id]!==2)tieN[tieKey(id)]=(tieN[tieKey(id)]||0)+1});
+  const tied=id=>tieN[tieKey(id)]>1;
   let band=false,prevT=null;
   const rows=so.ids.map((id,i)=>{const p=P(id),c=ch[id]||"",n=res[id];if(so.tier[id]!==prevT){if(prevT!==null)band=!band;prevT=so.tier[id]}
-    return`<tr class="${band?"band":""}${i===curIdx?" cur":""}"><td class="k"><span>${i+1}</span></td><td class="nm">${who(p,true)}</td><td class="tier">${TIERS[so.tier[id]]}</td>
+    return`<tr class="${band?"band":""}${i===curIdx?" cur":""}"><td class="k"><span>${i+1}</span></td><td class="nm">${who(p,true)}</td><td class="tier">${TIERS[so.tier[id]]}${tied(id)?`<span class="tie" title="Same group and same fama (${nowF[id]}): roll a die, then use the arrows">TIE · ${nowF[id]} · ROLL</span>`:""}</td>
     <td><select data-id="${id}"><option value="">choose…</option>${REG.map(([k,nm])=>`<option value="${k}"${c===k?" selected":""}${c!==k&&(used[k]||0)>=6?" disabled":""}>${nm}</option>`).join("")}<option value="X"${c==="X"?" selected":""}>Refuses</option></select></td>
     <td class="slot">${c==="X"?'<span style="color:var(--mute)">Refuses</span>':c&&n?`${ORD[n-1]} place<span class="cd">${c}${n}</span>`:""}</td><td class="mv"><button data-u="${i}">▲</button><button data-d="${i}">▼</button></td></tr>`}).join("");
   const HINT={G:"Hagia Sophia, the Hippodrome, the Great Palace and its imperial relics",B:"The emperors’ home and best-defended spot; the icon of the Virgin",M:"Undefended warehouses on the Golden Horn; the mosque and storehouse",P:"The sea-wall fortress, the Pantocrator, the Holy Apostles",R:"Mansions, rubble, and small churches: a forgotten relic or two"};
   const nx=REG.map(([k,nm])=>{const u=used[k]||0;return`<div class="rg${u>=6?" full":""}"><div class="top"><span>${nm}</span>${u>=6?"<span>full</span>":`<b>${ORD[u]}</b>`}</div><div class="hint">${HINT[k]}</div></div>`}).join("");
   const ref=so.ids.filter(id=>ch[id]==="X").length;
-  $("main").className="";$("main").innerHTML=`<div class="panel"><table class="so">${rows}</table></div><div class="panel"><h2>Next available place</h2><div class="nx">${nx}</div>${ref?`<div class="held">Refusing: ${ref}</div>`:""}<div class="keys">Write your region and place on your plan sheet. Sack Worksheets due Tuesday, Nov 10, at 11:59pm.</div></div>`;
+  $("main").className="";$("main").innerHTML=`<div class="panel"><table class="so">${rows}</table></div><div class="panel"><h2>Next available place</h2><div class="nx">${nx}</div>${ref?`<div class="held">Refusing: ${ref}</div>`:""}${Object.values(tieN).some(n=>n>1)?'<div class="banner" style="background:var(--amberbg);color:var(--amber);border:2px dashed var(--amber);text-align:left;padding:10px 14px;margin:12px 0 0"><b>Ties to break.</b> Players marked TIE have the same fama in the same group. Roll a die for them (high roll goes first) and reorder with ▲▼.</div>':""}<div class="keys">Write your region and place on your plan sheet. Sack Worksheets due Monday, Nov 9, at 11:59pm.</div></div>`;
   document.querySelectorAll(".so select").forEach(s=>s.onchange=()=>{if(s.value)ch[s.dataset.id]=s.value;else delete ch[s.dataset.id];save();render()});
   const mv=(i,j)=>{const ids=[...so.ids];if(j<0||j>=ids.length)return;[ids[i],ids[j]]=[ids[j],ids[i]];D().sack.order=ids;save();render()};
   document.querySelectorAll("[data-u]").forEach(b=>b.onclick=()=>mv(+b.dataset.u,+b.dataset.u-1));
