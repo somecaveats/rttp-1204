@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>The Siege of Constantinople</title>
 <link href="https://fonts.googleapis.com/css2?family=EB+Garamond:wght@500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
-<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="xlsx.full.min.js"></script>
 <style>
 :root{--bg:#F6F1E7;--card:#FFFDF8;--line:#E0D6C2;--navy:#1F2430;--navy2:#2B3040;--text:#2B3040;--mute:#5E6475;--red:#8C2F39;--redbg:#F6E3E5;--win:#2E6B4A;--winbg:#E4F0E8;--amber:#8A5A12;--amberbg:#FBEFD9;--grey:#8D93A1}
 *{box-sizing:border-box}
@@ -420,11 +420,18 @@ $("file").onchange=async e=>{const f=e.target.files[0];if(!f)return;
   try{const wb=XLSX.read(await f.arrayBuffer());const ws=wb.Sheets["Totals"]||wb.Sheets[wb.SheetNames[0]];
     const aoa=XLSX.utils.sheet_to_json(ws,{header:1,defval:""});const hi=aoa.findIndex(r=>r.includes("Student"));if(hi<0)throw"no Student column";
     const H=aoa[hi],ix=n=>H.indexOf(n),cS=ix("Section"),cN=ix("Student"),cC=ix("Character"),cF=ix("Faction"),cCur=ix("Current");
+    const cSt=ix("Starting");
+    // If Excel hasn't saved calculated values, work fama out from Starting + the Ledger tab.
+    const blank=aoa.slice(hi+1).filter(r=>r[cN]).every(r=>r[cCur]===""||r[cCur]==null);
+    let calc=null;
+    if(blank&&wb.Sheets["Ledger"]&&cSt>=0){calc={};const L=XLSX.utils.sheet_to_json(wb.Sheets["Ledger"],{header:1,defval:""});const lh=L.findIndex(r=>r.includes("Student")&&r.includes("Type"));
+      if(lh>=0){const LH=L[lh],ls=LH.indexOf("Section"),ln=LH.indexOf("Student"),lt=LH.indexOf("Type"),la=LH.indexOf("Amount");
+        L.slice(lh+1).forEach(r=>{const k=String(r[ls]).trim()+"|"+String(r[ln]).trim(),a=+r[la]||0,ty=String(r[lt]).trim();if(!r[ln]||!a||/^EXAMPLE/i.test(String(r[0])))return;calc[k]=(calc[k]||0)+(ty==="Earned"?a:-a)})}}
     let n=0;["02","12"].forEach(sec=>{const d=S.data[sec];
       aoa.slice(hi+1).filter(r=>String(r[cS]).includes(sec)&&r[cN]).forEach(r=>{let p=d.players.find(x=>x.stu===String(r[cN]).trim());
         if(!p){const ch=String(r[cC]);p={id:sec+"-x"+d.players.length,stu:String(r[cN]).trim(),char:ch,fac:String(r[cF])||"Indeterminate",fama:0,wall:capOf(ch)?"cap":"land",vol:false,here:true};d.players.push(p)}
-        p.fama=+r[cCur]||0;n++});d.loaded=f.name});
-    save();render();flash(`Loaded fama for ${n} students.`)}catch(err){flash("Couldn’t read that file: "+err)}
+        p.fama=calc?(+r[cSt]||0)+(calc[String(r[cS]).trim()+"|"+String(r[cN]).trim()]||0):(+r[cCur]||0);n++});d.loaded=f.name});
+    save();render();flash(`Loaded fama for ${n} students${calc?" (worked out from the Ledger)":""}.`)}catch(err){flash("Couldn’t read that file: "+err)}
   e.target.value=""};
 const csv=rows=>rows.map(r=>r.map(v=>{v=String(v??"");return/[",\n]/.test(v)?`"${v.replace(/"/g,'""')}"`:v}).join(",")).join("\n");
 function ledger(){const dt=new Date(),ds=`${dt.getMonth()+1}/${dt.getDate()}/${dt.getFullYear()}`;return changes(9).map(([id,t,n,why])=>[ds,"Sec "+S.sec,P(id).stu,t,n,why])}
