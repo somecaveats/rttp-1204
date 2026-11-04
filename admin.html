@@ -57,6 +57,7 @@ td.num{text-align:right;font-variant-numeric:tabular-nums}
   <button id="dec">Open in decoder</button>
   <button id="dl">Download CSV</button>
   <button id="refresh">Refresh</button>
+  <button id="resetAll" title="Erase every student’s answers in this section">Reset all</button>
   <span class="msg" id="msg"></span>
 </header>
 <main>
@@ -116,6 +117,9 @@ $("saveAsg").onclick=async()=>{if(!draft){flash("Nothing to save.");return}
   try{data=await api({op:"assign",assign:draft});draft=null;render();flash("Places saved. Students can begin.")}catch(e){flash(e.message)}};
 document.querySelectorAll("[data-s]").forEach(b=>b.onclick=async()=>{if(draft&&!confirm("Discard unsaved place changes?"))return;draft=null;sec=b.dataset.s;try{localStorage.setItem("sackadm_sec",sec)}catch(e){};await refresh()});
 $("refresh").onclick=refresh;
+$("resetAll").onclick=async()=>{const n=Object.keys(data.recs).length;if(!n){flash("Nothing to reset.");return}
+  if(!confirm(`Erase ALL answers for Section ${sec} (${n} students)? Places are kept. This can’t be undone.`))return;
+  try{data=await api({op:"resetall"});render();flash(`Section ${sec}: all answers erased.`)}catch(e){flash(e.message)}};
 const csvOut=rows=>rows.map(r=>r.map(v=>{v=String(v??"");return/[",\n]/.test(v)?`"${v.replace(/"/g,'""')}"`:v}).join(",")).join("\n");
 $("dl").onclick=()=>{const rows=[["Section","Character","Place","Status","Answers","Collected","Turned in","Fama","Nefas","Code","Last activity"]];
   SECTIONS[sec].forEach(id=>{const r=data.recs[id],a=data.assign[id]||"";rows.push([sec,CHARS[id],a==="X"?"Refuses":a,statusOf(id)[1],r?r.answers.join(""):"",r&&r.collected!=null?r.collected:"",r&&r.turnedIn!=null?r.turnedIn:"",r&&r.fama!=null?r.fama:"",r&&r.nefas!=null?r.nefas:"",r&&r.code||"",r?(r.updated||r.started):""])});

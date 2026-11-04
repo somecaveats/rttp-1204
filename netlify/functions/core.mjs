@@ -105,6 +105,8 @@ async function admin(body, store, env) {
     await store.setJSON(asgKey(sec), clean);
   } else if (op === "reset") {
     await store.delete(recKey(sec, Number(body.charId)));
+  } else if (op === "resetall") {
+    for (const id of SECTIONS[sec]) await store.delete(recKey(sec, id));
   } else if (op !== "list") return err("Unknown instructor request.");
 
   const assign = (await store.get(asgKey(sec), { type: "json" })) || {};
