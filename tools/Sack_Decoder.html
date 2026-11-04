@@ -56,7 +56,7 @@ td.n,th.n{text-align:right;font-variant-numeric:tabular-nums}
 <body>
 <header>
   <h1>Sack Decoder</h1>
-  <div class="secsel">Section&nbsp; <button data-s="02">02</button> <button data-s="12">12</button></div>
+  <a href="../admin.html" style="color:#C9CCD6;font-size:14px;text-decoration:none;border:1px solid #3A4153;border-radius:6px;padding:5px 10px;margin-right:10px">◂ Sack Control</a><div class="secsel">Section&nbsp; <button data-s="02">02</button> <button data-s="12">12</button></div>
   <div class="note">Instructor only · nothing leaves this page</div>
 </header>
 <div class="wrap">
@@ -118,7 +118,14 @@ try{SEC=localStorage.getItem("sackdec_sec")||"02"}catch(e){}
 const $=id=>document.getElementById(id);
 const esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 const norm=s=>s.normalize("NFD").replace(/[̀-ͯ]/g,"").toLowerCase().trim();
-function setSec(s){SEC=s;try{localStorage.setItem("sackdec_sec",s)}catch(e){}document.querySelectorAll(".secsel button").forEach(b=>b.classList.toggle("cur",b.dataset.s===s));if($("results").style.display==="block")decode()}
+// Each section keeps its own codes and refusers; switching swaps them.
+const INPUT={"02":{codes:"",refusers:""},"12":{codes:"",refusers:""}};
+try{const x=JSON.parse(localStorage.getItem("sackdec_inputs")||"null");if(x)Object.assign(INPUT,x)}catch(e){}
+function keepInput(){if(!$("codes"))return;INPUT[SEC]={codes:$("codes").value,refusers:$("refusers").value};try{localStorage.setItem("sackdec_inputs",JSON.stringify(INPUT))}catch(e){}}
+function setSec(s,first){if(!first)keepInput();SEC=s;try{localStorage.setItem("sackdec_sec",s)}catch(e){}
+  document.querySelectorAll(".secsel button").forEach(b=>b.classList.toggle("cur",b.dataset.s===s));
+  $("codes").value=INPUT[s].codes||"";$("refusers").value=INPUT[s].refusers||"";
+  if($("codes").value.trim()||$("refusers").value.trim())decode();else{$("msgs").innerHTML="";$("results").style.display="none";R=null}}
 document.querySelectorAll(".secsel button").forEach(b=>b.onclick=()=>setSec(b.dataset.s));
 function findStudent(txt){const t=norm(txt);if(!t)return null;const r=ROSTER[SEC];
  return r.find(([n])=>norm(n)===t)||r.find(([n,id])=>norm(SHORT[id])===t)||r.find(([n,id])=>norm(CHARNAME[id]).includes(t))||null}
@@ -208,17 +215,18 @@ function tr(k,v){return "<tr><td>"+k+"</td><td class=n><b>"+v+"</b></td></tr>"}
 function dl(name,rows){const csv=rows.map(r=>r.map(v=>{v=String(v??"");return /[",\n]/.test(v)?'"'+v.replace(/"/g,'""')+'"':v}).join(",")).join("\r\n");
  const a=document.createElement("a");a.href=URL.createObjectURL(new Blob(["﻿"+csv],{type:"text/csv"}));a.download=name;document.body.appendChild(a);a.click();a.remove()}
 $("go").onclick=decode;
-$("clear").onclick=()=>{$("codes").value="";$("refusers").value="";$("msgs").innerHTML="";$("results").style.display="none";R=null};
+$("clear").onclick=()=>{$("codes").value="";$("refusers").value="";$("msgs").innerHTML="";$("results").style.display="none";R=null;keepInput()};
+$("codes").addEventListener("input",keepInput);$("refusers").addEventListener("input",keepInput);
 $("csv1").onclick=()=>{if(!R)return;dl("Sack_Results_Sec"+SEC+".csv",[["Section","Student","Character","Faction","Code","Region","Position","Q1","Q2","Q3","Q1 quality","Q2 quality","Silver collected","Silver turned in","Silver kept","Fama","Nefas","Q3 outcome","Extra votes"],
  ...R.rows.map(r=>[SEC,r.student,r.char,r.faction,r.code,r.region,r.pos,r.ch[0],r.ch[1],r.ch[2],QMAP[0][r.ch[0]],QMAP[1][r.ch[1]],r.collected,r.turned,r.kept,r.fama,r.nefas,r.q3,r.votes]),
  ...R.refusers.map(r=>[SEC,r.student,r.cid?CHARNAME[r.cid]:"",r.cid?FACTION[r.cid]:"","REFUSED","","","","","","","",0,0,0,0,0,"Refused to sack",""])])};
 $("csv2").onclick=()=>{if(!R)return;const d=$("ldate").value||new Date().toISOString().slice(0,10);
  dl("Fama_Tracker_Sack_Sec"+SEC+".csv",[["Date","Section","Student","Type","Amount","Reason"],...R.rows.filter(r=>r.fama!==0).map(r=>[d,"Sec "+SEC,r.student,r.fama>0?"Earned":"Penalty",Math.abs(r.fama),"Sack: "+r.region+" pos "+r.pos])])};
-setSec(SEC);
+setSec(SEC,true);
 
 // Handoff from Sack Control (same site): fill in this section's codes and refusers.
 if(/from=control/.test(location.search)){try{const h=JSON.parse(localStorage.getItem("sack_handoff")||"null");
-  if(h&&Date.now()-h.at<10*60*1000){setSec(h.sec);$("codes").value=h.codes.join("\n");$("refusers").value=h.refusers.join("\n");if(h.codes.length)decode()}}catch(e){}}
+  if(h&&Date.now()-h.at<10*60*1000){INPUT[h.sec]={codes:h.codes.join("\n"),refusers:h.refusers.join("\n")};setSec(h.sec,true);keepInput();localStorage.removeItem("sack_handoff")}}catch(e){}}
 </script>
 </body>
 </html>

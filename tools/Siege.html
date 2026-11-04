@@ -134,6 +134,14 @@ body:not(.ctlon) .so td.mv{display:none}
 #ctl .sep{width:1px;height:20px;background:#555;margin:0 4px}
 #ctl .msg{color:#C9A86A}
 #ctl .k{color:#9aa;margin-left:auto}
+.overlay{position:fixed;inset:0;background:rgba(31,36,48,.88);display:flex;align-items:center;justify-content:center;z-index:50}
+.overlay .box{background:var(--card);border-radius:14px;padding:40px 54px;text-align:center;max-width:900px}
+.overlay h2{font-family:"EB Garamond",Georgia,serif;font-weight:600;font-size:60px;margin:0 0 12px;color:var(--navy)}
+.overlay p{font-size:24px;color:var(--mute);margin:0 0 24px;line-height:1.45}
+.overlay p b{color:var(--navy)}
+.ovbtn{padding:10px 22px;border-radius:7px;border:1px solid var(--navy);background:var(--navy);color:#fff;font-weight:600;cursor:pointer;font-size:18px;font-family:inherit}
+#ctl a{color:#C9CCD6;text-decoration:none;border:1px solid #555;border-radius:4px;padding:4px 8px}
+#ctl a:hover{color:#fff}
 .hidden{display:none!important}
 </style>
 </head>
@@ -142,6 +150,7 @@ body:not(.ctlon) .so td.mv{display:none}
 <div class="title"><h1 id="h1"></h1><p class="sub" id="sub"></p></div>
 <div class="phases" id="phases"></div>
 <main id="main"></main>
+<div id="overlay" class="overlay hidden"><div class="box"><h2 id="ovH"></h2><p id="ovP"></p><button class="ovbtn" id="ovB">Continue</button></div></div>
 <div id="ctl">
   <select id="secSel" title="Section"><option value="02">Section 02</option><option value="12">Section 12</option></select>
   <button id="loadBtn" title="Load the Fama Tracker (.xlsx), Totals tab">Load fama…</button>
@@ -155,6 +164,7 @@ body:not(.ctlon) .so td.mv{display:none}
   <button id="mailBtn" title="Send both CSVs to your email (Netlify site only)">Email record</button>
   <button id="resetBtn">Reset section</button>
   <span class="msg" id="msg"></span>
+  <a href="Sack_Decoder.html" target="_blank">Sack Decoder ↗</a> <a href="../admin.html" target="_blank">Sack Control ↗</a>
   <span class="k">H hide bar · Enter next roll</span>
 </div>
 <form name="siege-record" data-netlify="true" netlify-honeypot="bot-field" hidden>
@@ -276,8 +286,12 @@ const d6=()=>{const a=new Uint32Array(1);crypto.getRandomValues(a);return a[0]%6
 function resTxt(v,first){if(v==="y")return`<span class="res y">SUCCESS</span>${first?'<span class="first">FIRST IN</span>':""}`;if(v==="n")return'<span class="res n">FAILURE</span>';if(v==="s")return'<span class="res s">SANK</span>';return'<span class="res" style="color:#bbb">—</span>'}
 function renderRound(R){
   const d=D(),rd=d.rounds[R],e=evalRound(R),k=rd.step,now=famaMap(9);
+  if(!e.outcome)rd.shown=null;
+  else if(rd.shown!==e.outcome){rd.shown=e.outcome;save();
+    if(e.outcome==="fell"){const p=P(e.first);showOv("The City Falls!",`<b>${esc(short(p.char))}</b> (${esc(p.stu)}) is first into Constantinople, +1 fama.`+(R===1?"<br>Every volunteer whose ship didn’t sink gains 1 fama.":"")+"<br>On to the sack.")}
+    else showOv(R===1?"The Attack Fails":"The Attack Fails Again",R===1?"Every volunteer loses 1 fama.<br>Round 2: everyone attacks, with the same crews.":"No one is inside the walls.<br>The crusade is in danger…")}
   $("h1").textContent=`Round ${R}`;
-  $("sub").innerHTML=R===1?"<b>Voluntary.</b> If anyone gets in, every volunteer gains 1 fama; if no one does, every volunteer loses 1.":"<b>Everyone attacks.</b> No fama gained or lost for attacking, except sinking (−1) and first in (+1).";
+  $("sub").innerHTML=R===1?"<b>Voluntary.</b> Fama is settled once, when the round ends: if the city falls, every volunteer gains 1; if it doesn’t, every volunteer loses 1.":"<b>Everyone attacks.</b> No fama gained or lost for attacking, except sinking (−1) and first in (+1).";
   $("phases").innerHTML=PH.map((p,i)=>`<div class="ph ${i+1===k?"cur":""}" data-s="${i+1}">${i+1}. ${p}</div>`).join("");
   document.querySelectorAll(".ph").forEach(x=>x.onclick=()=>{rd.step=+x.dataset.s;save();render()});
   const key=`s${k}`,inStep=x=>{const o=e.st[x.p.id];return k===1||(k===2?o.s1==="y":o.s2==="y")};
@@ -356,8 +370,8 @@ function renderR3(){
   document.querySelectorAll(".pc input").forEach(inp=>inp.onchange=()=>{let v=parseInt(inp.value,10);const id=inp.dataset.id;
     if(v>now[id]){v=Math.max(0,now[id]);flash(`${short(P(id).char)} only has ${now[id]} fama.`)}
     if(v>0)r3.pl[id]=v;else delete r3.pl[id];save();render()});
-  if($("openG"))$("openG").onclick=()=>{r3.done=true;r3.run=false;runClock();save();render()};
-  if($("shutG"))$("shutG").onclick=()=>{if(!confirm("Record that the gates stay shut? Everyone loses all their fama."))return;r3.lost=true;r3.run=false;runClock();save();render()};
+  if($("openG"))$("openG").onclick=()=>{r3.done=true;r3.run=false;runClock();save();render();showOv("The Gates Open!",`${esc(short(deal.char))} (${esc(deal.stu)}) leads the army into the city, +1 fama.<br>Pledges are paid. On to the sack.`)};
+  if($("shutG"))$("shutG").onclick=()=>{if(!confirm("Record that the gates stay shut? Everyone loses all their fama."))return;r3.lost=true;r3.run=false;runClock();save();render();showOv("The Gates Stay Shut","The crusade collapses. Every crusader loses all their fama.")};
   if($("undoG"))$("undoG").onclick=()=>{r3.done=false;r3.lost=false;save();render()};
   $("ctx").innerHTML=`Deal through <select id="dealSel"><option value="">—</option>${here.map(p=>`<option value="${p.id}"${p.id===r3.deal?" selected":""}>${esc(short(p.char))} (${esc(p.stu)})</option>`).join("")}</select>
    <button id="clk">${r3.run?"Pause":"Start"} clock</button><button id="clkp">+1 min</button><button id="clkr">Reset clock</button>`;
@@ -406,10 +420,19 @@ function renderSetup(){
   $("ctx").innerHTML="";
 }
 function render(){
+  const key=S.sec+"|"+S.tab+"|"+S.setup+"|"+(S.tab[0]==="r"&&S.tab!=="r3"?D().rounds[S.tab[1]].step:"");
+  const keepScroll=render.last===key?[...document.querySelectorAll("main .panel")].map(p=>p.scrollTop):null;
+  render.last=key;
   $("secSel").value=S.sec;$("setupBtn").classList.toggle("on",S.setup);$("setupBtn").textContent=S.setup?"Setup ◂":"Setup ▸";
   tabs();
   if(S.setup)renderSetup();else if(S.tab==="r1")renderRound(1);else if(S.tab==="r2")renderRound(2);else if(S.tab==="r3")renderR3();else renderSack();
+  if(keepScroll)document.querySelectorAll("main .panel").forEach((p,i)=>{if(keepScroll[i]!=null)p.scrollTop=keepScroll[i]});
 }
+
+/* ---------- popup ---------- */
+function showOv(h,p){$("ovH").textContent=h;$("ovP").innerHTML=p;$("overlay").classList.remove("hidden");$("ovB").focus()}
+$("ovB").onclick=()=>$("overlay").classList.add("hidden");
+$("overlay").onclick=e=>{if(e.target.id==="overlay")$("overlay").classList.add("hidden")};
 
 /* ---------- controls ---------- */
 function flash(t){$("msg").textContent=t;clearTimeout(flash.t);flash.t=setTimeout(()=>$("msg").textContent="",5000)}
@@ -448,7 +471,7 @@ $("mailBtn").onclick=async()=>{
     if(!r.ok)throw r.status;flash("Sent. Check your email (and Netlify ▸ Forms).")}catch(err){flash("Didn’t send ("+err+"). Download the CSVs instead.")}};
 $("resetBtn").onclick=()=>{if(!confirm(`Erase all siege data for Section ${S.sec}? Fama loaded from the tracker is kept.`))return;const old=D(),n=fresh(S.sec);
   n.players=old.players.map(p=>({...p}));n.loaded=old.loaded;n.sb=old.sb;S.data[S.sec]=n;S.tab="r1";save();runClock();render()};
-document.addEventListener("keydown",e=>{if(e.target.matches("input,select,textarea"))return;if(e.key==="h"||e.key==="H")$("ctl").classList.toggle("hidden")});
+document.addEventListener("keydown",e=>{if(e.key==="Escape"){$("overlay").classList.add("hidden");return}if(e.target.matches("input,select,textarea"))return;if(e.key==="h"||e.key==="H")$("ctl").classList.toggle("hidden")});
 runClock();render();
 </script>
 

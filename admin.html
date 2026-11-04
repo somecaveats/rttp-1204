@@ -14,6 +14,8 @@ header{background:var(--navy);padding:10px 20px;display:flex;gap:8px;align-items
 header .t{color:#fff;font-family:"EB Garamond",Georgia,serif;font-size:24px;font-weight:600;margin-right:14px}
 header button,header label.btn{font:inherit;font-size:14px;padding:6px 12px;border-radius:6px;border:1px solid #3A4153;background:var(--navy2);color:#E3E5EC;cursor:pointer}
 header button.on{background:var(--red);border-color:var(--red);color:#fff}
+header a.lnk{font-size:14px;padding:6px 12px;border-radius:6px;border:1px solid #3A4153;color:#C9CCD6;text-decoration:none}
+header a.lnk:hover{color:#fff}
 header .msg{color:#C9A86A;font-size:14px;margin-left:auto}
 main{padding:16px 20px 40px;max-width:1300px;margin:0 auto}
 .card{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:16px 18px;margin-bottom:16px}
@@ -54,7 +56,9 @@ td.num{text-align:right;font-variant-numeric:tabular-nums}
   <button data-s="02">Section 02</button><button data-s="12">Section 12</button>
   <label class="btn" title="The Sack CSV from the siege tool">Load sack order CSV…<input type="file" id="csv" accept=".csv" hidden></label>
   <button id="saveAsg">Save places</button>
-  <button id="dec">Open in decoder</button>
+  <button id="dec" title="Fill the decoder with this section’s codes">Send to decoder ↗</button>
+  <a href="tools/Sack_Decoder.html" target="_blank" class="lnk">Sack Decoder</a>
+  <a href="tools/Siege.html" target="_blank" class="lnk">Siege</a>
   <button id="dl">Download CSV</button>
   <button id="refresh">Refresh</button>
   <button id="resetAll" title="Erase every student’s answers in this section">Reset all</button>
