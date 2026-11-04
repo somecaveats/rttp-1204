@@ -54,6 +54,7 @@ input.roll{width:52px;font:inherit;font-size:26px;font-weight:600;text-align:cen
 input.roll:focus{outline:3px solid #8C93A8}
 .res{font-weight:600;font-size:19px;letter-spacing:.06em;white-space:nowrap}
 .res.y{color:var(--win)}.res.n{color:var(--red)}.res.s{color:var(--red)}
+button.pick{display:block;margin:4px auto 0;font:inherit;font-size:13px;font-weight:600;padding:3px 10px;border-radius:5px;border:1px solid var(--amber);background:var(--amberbg);color:var(--amber);cursor:pointer}
 .first{display:inline-block;background:var(--win);color:#fff;font-size:12px;letter-spacing:.08em;padding:2px 7px;border-radius:4px;margin-left:6px;vertical-align:middle}
 .at tr.won td{background:var(--winbg)}
 .at tr.out td{color:#A9A9A9;font-size:18px;padding:4px 6px}
@@ -210,12 +211,12 @@ function changes(upto=9){
     e.parts.forEach(x=>{if(e.st[x.p.id].s1==="s")out.push([x.p.id,"Penalty",1,`Siege round ${R}: ship sank`])});return e};
   if(upto<=1)return out;
   const e1=spends(1);
-  if(e1.outcome==="fell"){e1.parts.forEach(x=>{if(e1.st[x.p.id].s1!=="s")out.push([x.p.id,"Earned",1,"Siege round 1: the city fell"])});out.push([e1.first,"Earned",1,"First into the city"]);return out}
+  if(e1.outcome==="fell"){e1.parts.forEach(x=>{if(e1.st[x.p.id].s1!=="s")out.push([x.p.id,"Earned",1,"Siege round 1: the city fell"])});if(e1.first)out.push([e1.first,"Earned",1,"First into the city"]);return out}
   if(e1.outcome!=="failed")return out;
   e1.parts.forEach(x=>{if(e1.st[x.p.id].s1!=="s")out.push([x.p.id,"Penalty",1,"Siege round 1 failed"])});
   if(upto<=2)return out;
   const e2=spends(2);
-  if(e2.outcome==="fell"){out.push([e2.first,"Earned",1,"First into the city"]);return out}
+  if(e2.outcome==="fell"){if(e2.first)out.push([e2.first,"Earned",1,"First into the city"]);return out}
   if(e2.outcome!=="failed"||upto<=3)return out;
   const r3=d.r3;
   if(r3.done){Object.entries(r3.pl).forEach(([id,n])=>{if(+n>0)out.push([id,"Spent",+n,"Bribe to open the gates"])});out.push([r3.deal,"Earned",1,"Opened the gates: first into the city"])}
@@ -252,9 +253,13 @@ function evalRound(R){
   const pending=all.some(o=>o.s1==null||(o.s1==="y"&&o.s2==null)||(o.s2==="y"&&o.s3==null));
   const winners=all.filter(o=>o.s3==="y").sort((a,b)=>fam(b.x.p.id)-fam(a.x.p.id)||(b.tot[3]-a.tot[3]));
   let outcome=null,first=null;
-  if(parts.length&&!pending){if(winners.length){outcome="fell";first=winners[0].x.p.id}else outcome="failed"}
-  return{R,parts,ships:shipList,land,st,need,grpN,pend2,outcome,first,fam}}
-function fellIn(){const a=evalRound(1);if(a.outcome==="fell")return 1;if(a.outcome!=="failed")return 0;const b=evalRound(2);if(b.outcome==="fell")return 2;if(b.outcome!=="failed")return 0;return D().r3.done?3:0}
+  let tieFirst=[];
+  if(parts.length&&!pending){if(winners.length){outcome="fell";
+    const top=winners[0];tieFirst=winners.filter(o=>fam(o.x.p.id)===fam(top.x.p.id)&&o.tot[3]===top.tot[3]).map(o=>o.x.p.id);
+    if(tieFirst.length>1){const pick=D().rounds[R].firstPick;first=tieFirst.includes(pick)?pick:null}else{tieFirst=[];first=top.x.p.id}}
+    else outcome="failed"}
+  return{R,parts,ships:shipList,land,st,need,grpN,pend2,outcome,first,fam,tieFirst}}
+function fellIn(){const a=evalRound(1);if(a.outcome==="fell")return a.first?1:0;if(a.outcome!=="failed")return 0;const b=evalRound(2);if(b.outcome==="fell")return b.first?2:0;if(b.outcome!=="failed")return 0;return D().r3.done?3:0}
 function r3price(){const d=P(D().r3.deal);if(!d)return 20;if(/Boniface/.test(d.char))return 15;if(/Anna/.test(d.char))return 12;return 20}
 
 /* ---------- sack order ---------- */
@@ -291,6 +296,7 @@ function resTxt(v,first){if(v==="y")return`<span class="res y">SUCCESS</span>${f
 function renderRound(R){
   const d=D(),rd=d.rounds[R],e=evalRound(R),k=rd.step,now=famaMap(9);
   if(!e.outcome)rd.shown=null;
+  else if(e.outcome==="fell"&&!e.first){if(rd.shown!=="tie"){rd.shown="tie";save();showOv("A Tie for First In",e.tieFirst.map(id=>`<b>${esc(short(P(id).char))}</b> (${esc(P(id).stu)})`).join(" and ")+" have the same fama and the same roll.<br>Roll off: high roll is first into the city. Then click <b>First in</b> beside the winner.")}}
   else if(rd.shown!==e.outcome){rd.shown=e.outcome;save();
     if(e.outcome==="fell"){const p=P(e.first);showOv("The City Falls!",`<b>${esc(short(p.char))}</b> (${esc(p.stu)}) is first into Constantinople, +1 fama.`+(R===1?"<br>Every volunteer whose ship didn’t sink gains 1 fama.":"")+"<br>On to the sack.")}
     else showOv(R===1?"The Attack Fails":"The Attack Fails Again",R===1?"Every volunteer loses 1 fama.<br>Round 2: everyone attacks, with the same crews.":"No one is inside the walls.<br>The crusade is in danger…")}
@@ -305,7 +311,8 @@ function renderRound(R){
     const won=k===3&&e.first===p.id&&e.outcome==="fell";let cls=(crew?"crew":"")+(won?" won":"");
     if(k===1&&x.ship&&!isCap)return`<tr class="${cls}"><td class="nm">${who(p)}</td><td colspan="4" class="with">sails with the captain</td><td>${resTxt(o.s1)}</td></tr>`;
     const c=cell(R,p.id,k),b=(+c.sp||0)+sbOf(p),t=o.tot[k];
-    return`<tr class="${cls}"><td class="nm">${who(p)}</td><td>${spendSel(R,p,k,now)}</td><td>${rollIn(R,p,k)}</td><td class="bon">${b?"+"+b:""}</td><td class="tot">${t??""}</td><td>${resTxt(o[key],won)}</td></tr>`};
+    const pickBtn=k===3&&e.tieFirst&&e.tieFirst.includes(p.id)&&e.first!==p.id?`<button class="pick" data-pick="${p.id}">First in</button>`:"";
+    return`<tr class="${cls}"><td class="nm">${who(p)}</td><td>${spendSel(R,p,k,now)}</td><td>${rollIn(R,p,k)}</td><td class="bon">${b?"+"+b:""}</td><td class="tot">${t??""}</td><td>${resTxt(o[key],won)}${pickBtn}</td></tr>`};
   const grp=t=>`<tr class="grp"><td colspan="6">${t}</td></tr>`;
   let rows="";
   if(k===1){e.ships.forEach(s=>{rows+=grp(`${G("⛵")}Ship of ${esc(fullCap(s.k))}`)+s.m.map((x,i)=>row(x,i===0,i>0)).join("")});
@@ -317,7 +324,8 @@ function renderRound(R){
   if(outs.length)rows+=grp('<span style="color:var(--mute)">Out of the attack</span>')+outs.map(x=>{const o=e.st[x.p.id];const why=o.s1==="s"?"Ship sank":o.s1==="n"?"Failed step 1":"Failed step 2";return`<tr class="out"><td class="nm">${who(x.p)}</td><td colspan="5" style="text-align:left">${why}</td></tr>`}).join("");
   if(!e.parts.length)rows=`<tr><td colspan="6" style="text-align:left;color:var(--mute);font-size:20px;padding:20px 6px">${R===1?"No volunteers yet. Tick volunteers in Setup.":"No attackers. Check attendance in Setup."}</td></tr>`;
   let rp="";
-  if(e.outcome==="fell"){const p=P(e.first);rp+=`<div class="banner ok"><div class="big">The city falls</div><div class="sm">First in: <b>${esc(short(p.char))}</b> (${esc(p.stu)})</div></div>`}
+  if(e.outcome==="fell"&&!e.first)rp+=`<div class="banner" style="background:var(--amberbg);color:var(--amber);border:2px dashed var(--amber)"><div class="big" style="color:var(--amber)">Tie for first in</div><div class="sm">${e.tieFirst.map(id=>esc(short(P(id).char))).join(" and ")}: roll off, then click <b>First in</b> beside the winner.</div></div>`;
+  else if(e.outcome==="fell"){const p=P(e.first);rp+=`<div class="banner ok"><div class="big">The city falls</div><div class="sm">First in: <b>${esc(short(p.char))}</b> (${esc(p.stu)})</div></div>`}
   else if(e.outcome==="failed")rp+=`<div class="banner bad"><div class="big">The attack fails</div><div class="sm">${R===1?"Round 2: everyone attacks.":"The crusade is in danger."}</div></div>`;
   rp+=`<h2>Step ${k}: ${PH[k-1]}</h2><div class="need">`;
   if(k===1)rp+=`<div class="l">Land walls<small>roll this or higher</small></div><div class="n">5</div><div class="l">Ships<small>captain rolls; on a 1 the ship sinks</small></div><div class="n">2</div>`;
@@ -333,6 +341,7 @@ function renderRound(R){
   rp+=`<div class="keys">${k>1?"<b>A 1 always fails</b> on a wall roll, unless ⚑.<br>":""}<span class="sbf" style="margin:0">${G("⚑")}</span><b>Standard-Bearer${d.sb?` (${FACNAME[d.sb]})`:""}:</b> +1 to every roll<br><b>Spend:</b> +1 for 1 fama · +2 for 4 fama, before the roll</div>`;
   $("main").className="";$("main").innerHTML=`<div class="panel"><table class="at">${cols}${head}${rows}</table></div><div class="panel">${rp}</div>`;
   wireRolls();
+  document.querySelectorAll("button.pick").forEach(b=>b.onclick=()=>{rd.firstPick=b.dataset.pick;save();render()});
   $("ctx").innerHTML=`<button id="prevS">◂ Step</button><button id="nextS">Step ▸</button><button id="rollAll" title="Fill every empty roll on this step with a random die">Roll all empty</button>`;
   $("rollAll").onclick=()=>{document.querySelectorAll("input.roll").forEach(i=>{if(!i.value)setCell(i.dataset,"roll",String(d6()))});render()};
   $("prevS").onclick=()=>{if(rd.step>1){rd.step--;save();render()}};$("nextS").onclick=()=>{if(rd.step<3){rd.step++;save();render()}};
