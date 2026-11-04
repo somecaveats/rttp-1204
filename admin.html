@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>Sack Control</title>
+<link href="https://fonts.googleapis.com/css2?family=EB+Garamond:wght@500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#F6F1E7;--card:#FFFDF8;--line:#E0D6C2;--navy:#1F2430;--navy2:#2B3040;--text:#2B3040;--mute:#5E6475;--red:#8C2F39;--win:#2E6B4A;--winbg:#E4F0E8;--amber:#8A5A12;--amberbg:#FBEFD9}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--text);font-family:"IBM Plex Sans",Arial,sans-serif;font-size:16px}
+header{background:var(--navy);padding:10px 20px;display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+header .t{color:#fff;font-family:"EB Garamond",Georgia,serif;font-size:24px;font-weight:600;margin-right:14px}
+header button,header label.btn{font:inherit;font-size:14px;padding:6px 12px;border-radius:6px;border:1px solid #3A4153;background:var(--navy2);color:#E3E5EC;cursor:pointer}
+header button.on{background:var(--red);border-color:var(--red);color:#fff}
+header .msg{color:#C9A86A;font-size:14px;margin-left:auto}
+main{padding:16px 20px 40px;max-width:1300px;margin:0 auto}
+.card{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:16px 18px;margin-bottom:16px}
+.login{max-width:420px;margin:60px auto}
+.login input{width:100%;font:inherit;padding:10px;border:1px solid var(--line);border-radius:8px;margin:8px 0 12px}
+.login button{font:inherit;font-weight:600;padding:10px 16px;border-radius:8px;border:none;background:var(--navy);color:#fff;cursor:pointer}
+.sum{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:14px}
+.sum>div{flex:1;min-width:130px;background:var(--card);border:1px solid var(--line);border-left:6px solid var(--line);border-radius:8px;padding:8px 12px}
+.sum .n{font-size:34px;font-weight:600;color:var(--navy);line-height:1.1}
+.sum .l{font-size:13px;color:var(--mute);letter-spacing:.04em}
+.sum .g{border-left-color:var(--win)}.sum .a{border-left-color:var(--amber)}.sum .r{border-left-color:var(--red)}
+table{width:100%;border-collapse:collapse;background:var(--card);border:1px solid var(--line);border-radius:10px;overflow:hidden}
+th{font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--navy);text-align:left;padding:8px 10px;border-bottom:2px solid var(--line);background:#F1EBDD}
+td{padding:8px 10px;border-bottom:1px solid var(--line);vertical-align:middle}
+td.c{font-weight:600;color:var(--navy)}
+td select{font:inherit;padding:4px 6px;border:1px solid var(--line);border-radius:6px}
+.st{font-size:12px;letter-spacing:.06em;text-transform:uppercase;font-weight:600;padding:3px 8px;border-radius:5px;display:inline-block}
+.st.done{background:var(--winbg);color:var(--win)}.st.prog{background:var(--amberbg);color:var(--amber)}.st.wait{background:#EEE;color:var(--mute)}.st.ref{background:#F6E3E5;color:var(--red)}
+td.code{font-family:"IBM Plex Sans",monospace;font-weight:600;letter-spacing:.04em}
+td.num{text-align:right;font-variant-numeric:tabular-nums}
+.small{font-size:13px;color:var(--mute)}
+.x{border:1px solid var(--line);background:#fff;border-radius:6px;padding:3px 8px;cursor:pointer;color:var(--red);font:inherit;font-size:13px}
+.changed{outline:2px solid var(--amber)}
+.hidden{display:none!important}
+</style>
+</head>
+<body>
+<div id="loginView" class="login card">
+  <h2 style="font-family:'EB Garamond',Georgia,serif;margin:0 0 6px">Sack Control</h2>
+  <div class="small">Instructor passcode</div>
+  <input id="ap" type="password" autocomplete="current-password">
+  <button id="apGo">Sign in</button>
+  <div id="apErr" style="color:var(--red);font-weight:600;margin-top:10px"></div>
+</div>
+<div id="mainView" class="hidden">
+<header>
+  <span class="t">Sack Control</span>
+  <button data-s="02">Section 02</button><button data-s="12">Section 12</button>
+  <label class="btn" title="The Sack CSV from the siege tool">Load sack order CSV…<input type="file" id="csv" accept=".csv" hidden></label>
+  <button id="saveAsg">Save places</button>
+  <button id="dec">Open in decoder</button>
+  <button id="dl">Download CSV</button>
+  <button id="refresh">Refresh</button>
+  <span class="msg" id="msg"></span>
+</header>
+<main>
+  <div class="sum" id="sum"></div>
+  <table><thead><tr><th>Character</th><th>Place</th><th>Status</th><th>Answers</th><th class="num">Collected</th><th class="num">Turned in</th><th class="num">Fama</th><th class="num">Nefas</th><th>Code</th><th>Last activity</th><th></th></tr></thead><tbody id="rows"></tbody></table>
+  <p class="small">Places come from the siege tool’s Sack CSV, or set them by hand and press <b>Save places</b>. Students can’t start until their place is saved. <b>Reset</b> erases one student’s answers so they can start over. This page refreshes itself every 15 seconds.</p>
+</main>
+</div>
+<script>
+const CHARS={1:"Boniface of Montferrat",11:"Oberto of Biandrate",16:"Berthold of Katzenelnbogen",2:"Enrico Dandolo",7:"Angelo Falier",3:"Baldwin of Flanders",6:"Louis of Blois",15:"Geoffrey of Villehardouin",4:"Nivelon of Soissons",8:"John of Noyon",12:"Martin of Pairis",5:"Robert of Clari",10:"Empress Anna",14:"Theodore Branas"};
+const SHORT={1:"Boniface",11:"Oberto",16:"Berthold",2:"Dandolo",7:"Falier",3:"Baldwin",6:"Louis",15:"Geoffrey",4:"Nivelon",8:"John",12:"Martin",5:"Robert",10:"Anna",14:"Branas"};
+const SECTIONS={"02":[1,11,2,7,15,3,6,4,8,12,5,10,14],"12":[1,11,16,2,7,3,6,15,4,8,12,5,10,14]};
+const REG={G:"Great Palace",B:"Blachernae",M:"Merchant’s Quarter",P:"Petrion",R:"Greek Residential"};
+const PLACES=[];for(const r of "GBMPR")for(let i=1;i<=6;i++)PLACES.push(r+i);
+const $=id=>document.getElementById(id);
+const esc=s=>String(s??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+let pass="",sec="02",data={assign:{},recs:{}},draft=null,timer=null;
+try{pass=sessionStorage.getItem("sackadm")||"";sec=localStorage.getItem("sackadm_sec")||"02"}catch(e){}
+function flash(t){$("msg").textContent=t;clearTimeout(flash.t);flash.t=setTimeout(()=>$("msg").textContent="",6000)}
+async function api(body){const r=await fetch("/api/sack",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({action:"admin",pass,sec,...body})});
+  let j={};try{j=await r.json()}catch(e){};if(!r.ok)throw new Error(j.error||"No answer from the server.");return j}
+async function refresh(){try{data=await api({op:"list"});render()}catch(e){flash(e.message)}}
+function login(){$("apGo").onclick=async()=>{pass=$("ap").value;try{data=await api({op:"list"});try{sessionStorage.setItem("sackadm",pass)}catch(e){};show()}catch(e){$("apErr").textContent=e.message}};
+  $("ap").onkeydown=e=>{if(e.key==="Enter")$("apGo").click()}}
+function show(){$("loginView").classList.add("hidden");$("mainView").classList.remove("hidden");render();clearInterval(timer);timer=setInterval(()=>{if(!draft)refresh()},15000)}
+const fmtT=s=>s?new Date(s).toLocaleTimeString([],{hour:"numeric",minute:"2-digit"}):"";
+function statusOf(id){const a=(draft||data.assign)[id],r=data.recs[id];
+  if(a==="X")return["ref","Refused"];if(r&&r.turnedIn!=null)return["done","Done"];if(r&&r.answers.length)return["prog",`Question ${Math.min(3,r.answers.length+1)}${r.answers.length===3?" · turn-in":""}`];if(a)return["wait","Not started"];return["wait","No place"]}
+function render(){
+  document.querySelectorAll("[data-s]").forEach(b=>b.classList.toggle("on",b.dataset.s===sec));
+  const asg=draft||data.assign,ids=SECTIONS[sec];
+  const n={done:0,prog:0,wait:0,ref:0};ids.forEach(id=>n[statusOf(id)[0]]++);
+  const pot=ids.reduce((s,id)=>s+(data.recs[id]&&data.recs[id].turnedIn||0),0),need=(ids.length-n.ref)*100;
+  $("sum").innerHTML=`<div class="g"><div class="n">${n.done}</div><div class="l">done</div></div><div class="a"><div class="n">${n.prog}</div><div class="l">in progress</div></div><div><div class="n">${n.wait}</div><div class="l">not started</div></div><div class="r"><div class="n">${n.ref}</div><div class="l">refused</div></div><div><div class="n">${pot}</div><div class="l">marks turned in so far (Venice needs ${need})</div></div>`;
+  // which places are used, to flag duplicates
+  const used={};ids.forEach(id=>{const p=asg[id];if(p&&p!=="X")used[p]=(used[p]||0)+1});
+  $("rows").innerHTML=ids.map(id=>{const r=data.recs[id],p=asg[id]||"",[sc,st]=statusOf(id);const dup=p&&p!=="X"&&used[p]>1;
+    const sel=`<select data-id="${id}" class="${draft&&draft[id]!==data.assign[id]?"changed":""}"><option value="">—</option>${PLACES.map(x=>`<option value="${x}"${x===p?" selected":""}>${x} · ${REG[x[0]]} ${x[1]}</option>`).join("")}<option value="X"${p==="X"?" selected":""}>Refuses</option></select>${dup?' <span style="color:var(--red);font-weight:600">duplicate</span>':""}`;
+    return`<tr><td class="c">${esc(CHARS[id])}</td><td>${sel}</td><td><span class="st ${sc}">${st}</span>${r&&r.place!==p&&p?'<div class="small" style="color:var(--red)">answered as '+r.place+'</div>':""}</td><td>${r?r.answers.join(" "):""}</td><td class="num">${r&&r.collected!=null?r.collected:""}</td><td class="num">${r&&r.turnedIn!=null?r.turnedIn:""}</td><td class="num">${r&&r.fama!=null?r.fama:""}</td><td class="num">${r&&r.nefas!=null?r.nefas:""}</td><td class="code">${r&&r.code?esc(r.code):""}</td><td class="small">${r?fmtT(r.updated||r.started):""}</td><td>${r?`<button class="x" data-reset="${id}">Reset</button>`:""}</td></tr>`}).join("");
+  document.querySelectorAll("#rows select").forEach(s=>s.onchange=()=>{draft={...(draft||data.assign)};if(s.value)draft[s.dataset.id]=s.value;else delete draft[s.dataset.id];render();flash("Unsaved changes: press Save places.")});
+  document.querySelectorAll("[data-reset]").forEach(b=>b.onclick=async()=>{const id=b.dataset.reset;if(!confirm(`Erase ${CHARS[id]}’s answers so they can start over?`))return;try{data=await api({op:"reset",charId:id});render();flash("Reset.")}catch(e){flash(e.message)}});
+  $("saveAsg").textContent=draft?"Save places ●":"Save places"}
+function parseCSV(t){const rows=[];let r=[],f="",q=false;t=t.replace(/^﻿/,"");
+  for(let i=0;i<t.length;i++){const c=t[i];if(q){if(c==='"'){if(t[i+1]==='"'){f+='"';i++}else q=false}else f+=c}else if(c==='"')q=true;else if(c===","){r.push(f);f=""}else if(c==="\n"||c==="\r"){if(c==="\r"&&t[i+1]==="\n")i++;r.push(f);rows.push(r);r=[];f=""}else f+=c}
+  if(f||r.length){r.push(f);rows.push(r)}return rows.filter(x=>x.some(v=>v!==""))}
+$("csv").onchange=async e=>{const f=e.target.files[0];if(!f)return;const rows=parseCSV(await f.text());const H=rows[0].map(h=>h.trim());const ci=H.indexOf("Character"),cc=H.indexOf("Code"),cr=H.indexOf("Region");
+  if(ci<0||cc<0){flash("That isn’t the siege tool’s Sack CSV.");return}
+  const byName={};Object.entries(CHARS).forEach(([id,n])=>byName[n.toLowerCase()]=+id);
+  const next={...(draft||data.assign)};let n=0,miss=[];
+  rows.slice(1).forEach(r=>{const id=byName[(r[ci]||"").trim().toLowerCase()];if(!id||!SECTIONS[sec].includes(id)){if(r[ci])miss.push(r[ci]);return}
+    const code=(r[cc]||"").trim().toUpperCase(),reg=(r[cr]||"").trim();
+    if(/^[GBMPR][1-6]$/.test(code)){next[id]=code;n++}else if(/refus/i.test(reg)){next[id]="X";n++}});
+  draft=next;render();flash(`Loaded ${n} places for Section ${sec}${miss.length?`; not in this section: ${miss.join(", ")}`:""}. Press Save places.`);e.target.value=""};
+$("saveAsg").onclick=async()=>{if(!draft){flash("Nothing to save.");return}
+  const ps=Object.values(draft).filter(p=>p!=="X"),dups=ps.filter((p,i)=>ps.indexOf(p)!==i);
+  if(dups.length&&!confirm(`Two characters share ${[...new Set(dups)].join(", ")}. Save anyway?`))return;
+  try{data=await api({op:"assign",assign:draft});draft=null;render();flash("Places saved. Students can begin.")}catch(e){flash(e.message)}};
+document.querySelectorAll("[data-s]").forEach(b=>b.onclick=async()=>{if(draft&&!confirm("Discard unsaved place changes?"))return;draft=null;sec=b.dataset.s;try{localStorage.setItem("sackadm_sec",sec)}catch(e){};await refresh()});
+$("refresh").onclick=refresh;
+const csvOut=rows=>rows.map(r=>r.map(v=>{v=String(v??"");return/[",\n]/.test(v)?`"${v.replace(/"/g,'""')}"`:v}).join(",")).join("\n");
+$("dl").onclick=()=>{const rows=[["Section","Character","Place","Status","Answers","Collected","Turned in","Fama","Nefas","Code","Last activity"]];
+  SECTIONS[sec].forEach(id=>{const r=data.recs[id],a=data.assign[id]||"";rows.push([sec,CHARS[id],a==="X"?"Refuses":a,statusOf(id)[1],r?r.answers.join(""):"",r&&r.collected!=null?r.collected:"",r&&r.turnedIn!=null?r.turnedIn:"",r&&r.fama!=null?r.fama:"",r&&r.nefas!=null?r.nefas:"",r&&r.code||"",r?(r.updated||r.started):""])});
+  const a=document.createElement("a");a.href=URL.createObjectURL(new Blob(["﻿"+csvOut(rows)],{type:"text/csv"}));a.download=`Sack_Submissions_Sec${sec}_${new Date().toISOString().slice(0,10)}.csv`;a.click()};
+$("dec").onclick=()=>{const ids=SECTIONS[sec];const codes=ids.filter(id=>data.recs[id]&&data.recs[id].code).map(id=>`${SHORT[id]}: ${data.recs[id].code}`);
+  const ref=ids.filter(id=>data.assign[id]==="X").map(id=>SHORT[id]);
+  try{localStorage.setItem("sack_handoff",JSON.stringify({sec,codes,refusers:ref,at:Date.now()}))}catch(e){}
+  window.open("tools/Sack_Decoder.html?from=control","_blank")};
+login();
+if(pass){api({op:"list"}).then(j=>{data=j;show()}).catch(()=>{})}
+</script>
+</body>
+</html>

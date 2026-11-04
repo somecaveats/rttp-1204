@@ -1,0 +1,474 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>March Pact Debate</title>
+<link href="https://fonts.googleapis.com/css2?family=EB+Garamond:wght@500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#F6F1E7;--card:#FFFDF8;--line:#E0D6C2;--navy:#1F2430;--navy2:#2B3040;--text:#2B3040;--mute:#5E6475;--red:#8C2F39;--win:#2E6B4A;--winbg:#E4F0E8;--cream:#F6F1E7}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--text);font-family:"IBM Plex Sans",Arial,sans-serif;height:100vh;display:flex;flex-direction:column;overflow:hidden}
+header{display:flex;align-items:center;gap:6px;padding:10px 22px;flex-wrap:wrap;background:var(--navy)}
+.tab{min-width:40px;padding:6px 10px;border:1px solid #3A4153;background:var(--navy2);border-radius:6px;font-weight:600;color:#C9CCD6;cursor:pointer;font-size:18px;text-align:center;white-space:nowrap}
+.tab.cur{background:var(--red);color:#fff;border-color:var(--red)}
+.tab.done{background:var(--winbg);color:var(--win);border-color:var(--winbg)}
+.tab.done.cur{background:var(--win);color:#fff;border-color:#9FC7AE;box-shadow:0 0 0 2px #9FC7AE}
+.tab .res{font-weight:500;margin-left:4px}
+.tab .rid{font-size:13px;font-weight:500;margin-left:3px;opacity:.85}
+.sec{margin-left:auto;font-size:14px;color:#AEB3C2;letter-spacing:.08em;text-transform:uppercase}
+.title{padding:10px 28px 0}
+h1{font-family:"EB Garamond",Georgia,serif;font-weight:600;color:var(--navy);font-size:48px;margin:0;line-height:1.1}
+.default{font-size:22px;color:var(--mute);margin:6px 0 0}
+.default b{color:var(--navy)}
+.tags{margin-top:6px;font-size:16px;color:var(--red);font-weight:600;min-height:20px}
+.phases{display:flex;gap:8px;padding:12px 28px 6px}
+.ph{flex:1;text-align:center;padding:8px;border-bottom:4px solid var(--line);color:var(--mute);font-size:20px;font-weight:600;cursor:pointer}
+.ph.cur{border-color:var(--navy);color:var(--navy)}
+main{flex:1;display:grid;grid-template-columns:1.7fr 1fr;gap:22px;padding:8px 28px 14px;min-height:0}
+main.narrow{grid-template-columns:3fr 1fr}
+.panel{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:16px 20px;overflow:auto}
+.panel h2{margin:0 0 10px;font-size:15px;letter-spacing:.08em;text-transform:uppercase;color:var(--navy)}
+.opt{display:flex;gap:14px;align-items:center;padding:10px 8px;border-bottom:1px solid var(--line);font-size:28px;line-height:1.25;cursor:pointer;border-radius:6px}
+.opt:last-child{border-bottom:none}
+.let{flex:none;min-width:44px;height:44px;padding:0 6px;border-radius:22px;background:var(--navy);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:600;font-size:22px}
+.opt.new .let,tr.new .let{background:var(--red)}
+.opt.dropped{color:#A9A9A9;text-decoration:line-through}
+.opt.dropped .let{background:#C9C9C9}
+.opt.base{cursor:default;color:var(--mute)}.opt.base .let{background:var(--win)}
+.basenote{margin:10px 0 0;padding:8px 12px;border-left:4px solid var(--win);background:var(--winbg);color:var(--win);font-size:20px;font-weight:600}
+.opt.sup .let{box-shadow:0 0 0 3px var(--card),0 0 0 6px var(--navy)}
+.stag{flex:none;font-size:16px;font-weight:600;color:var(--navy);letter-spacing:.04em;text-transform:uppercase}
+.opt.arg{background:var(--navy);color:var(--cream)}
+.opt.arg .let{background:var(--red)}
+.opt.arg .who{color:#C9CCD6}
+.opt.arg .stag{color:var(--cream)}
+.opt.win .let{background:var(--win)}
+.opt.win{color:var(--win);font-weight:600}
+.otext{flex:1}
+.who{display:block;font-size:16px;color:var(--mute);font-weight:400;text-decoration:none}
+.del{display:none;flex:none;border:none;background:none;color:#B33;font-size:22px;cursor:pointer;padding:0 4px}
+body.ctlon .del{display:inline}
+.hint{display:none;font-size:14px;color:var(--mute);margin-top:10px}
+body.ctlon .hint{display:block}
+/* vote table */
+table.vt{width:100%;border-collapse:collapse}
+.vt th{font-size:15px;letter-spacing:.06em;text-transform:uppercase;color:var(--navy);text-align:center;padding:4px 6px;border-bottom:2px solid var(--line)}
+.vt th.l{text-align:left}
+.vt td{border-bottom:1px solid var(--line);padding:8px 6px;font-size:24px;line-height:1.2;vertical-align:middle}
+.vt td.num{width:96px;text-align:center}
+.vt td.tot{width:90px;text-align:center;font-size:32px;font-weight:600;color:var(--navy)}
+.vt td.lead{width:70px;text-align:center;font-size:30px;color:var(--navy);cursor:pointer;border-left:1px dashed var(--line)}
+.vt td.lead:hover{background:#EEF0F4}
+.vt tr.win td{color:var(--win);font-weight:600;background:var(--winbg)}
+.vt tr.win td.lead{color:var(--win)}
+.vt tr.win .let{background:var(--win)}
+.vt tr.out td{color:#A9A9A9}
+.vt tr.out .tx{text-decoration:line-through}
+.vt tr.out .let{background:#C9C9C9}
+.vt .lc{width:60px;cursor:pointer}
+.vt .tx{cursor:pointer}
+input.n{width:84px;font:inherit;font-size:30px;font-weight:600;text-align:center;padding:4px;border:1px solid var(--line);border-radius:6px;background:#fff;color:var(--navy)}
+input.n:focus{outline:3px solid #8C93A8}
+.defbanner{margin-top:14px;padding:12px 16px;border-radius:8px;background:var(--winbg);color:var(--win);font-size:22px;font-weight:600}
+.warnbanner{margin-top:14px;padding:12px 16px;border-radius:8px;background:#EEF0F4;color:var(--navy);font-size:22px;font-weight:600}
+.rst{font-weight:600;font-size:22px;white-space:nowrap}
+.rst.y{color:var(--win)}.rst.n{color:var(--red)}
+/* right panel */
+.clock{font-size:120px;font-weight:600;text-align:center;color:var(--navy);font-variant-numeric:tabular-nums;line-height:1}
+.clock.warn{color:#B5651D}.clock.zero{color:var(--red)}
+.clocklab{text-align:center;color:var(--mute);font-size:18px;margin-bottom:14px}
+.maj{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:10px}
+.maj.stack{grid-template-columns:1fr}
+.mbox{border:1px solid var(--line);border-radius:8px;padding:10px;text-align:center}
+.mbox .n{font-size:44px;font-weight:600;color:var(--navy)}
+.maj.stack .mbox .n{font-size:64px}
+.mbox .l{font-size:15px;color:var(--mute)}
+.spk{margin-top:18px;text-align:center;font-size:24px;color:var(--mute);border-top:1px solid var(--line);padding-top:12px}
+.spk b{display:block;font-size:72px;line-height:1.05;color:var(--navy);font-variant-numeric:tabular-nums}
+.spk b.warn{color:#B5651D}
+.note{font-size:20px;color:var(--mute);text-align:center;margin-top:30px}
+#ctl{background:var(--navy);color:#eee;padding:8px 16px;display:flex;gap:8px;flex-wrap:wrap;align-items:center;font-size:13px}
+#ctl button,#ctl select,#ctl input{font:inherit;padding:4px 8px;border-radius:4px;border:1px solid #555;background:var(--navy2);color:#eee}
+#ctl input{width:60px}
+#ctl .grow{flex:1;min-width:200px;width:auto}
+#ctl .k{color:#9aa}
+#ctl button.on{background:#C9A86A;color:var(--navy);border-color:#C9A86A}
+#ctl .sep{width:1px;height:20px;background:#555;margin:0 4px}
+.hidden{display:none!important}
+#pact{position:fixed;inset:40px;background:var(--card);border:2px solid var(--navy);border-radius:12px;padding:24px 32px;overflow:auto;font-size:22px;z-index:9}
+#pact h2{font-family:"EB Garamond",Georgia,serif;font-size:36px;margin:0 0 12px;color:var(--navy)}
+#pact ol>li{margin:8px 0;padding:4px 8px;border-radius:6px}
+#pact ol>li.new{background:var(--winbg);color:var(--win)}
+#pact ul{margin:4px 0 2px;font-size:19px}
+#pact .dflt{color:var(--mute);font-style:italic}
+#pact .x{position:absolute;top:12px;right:16px;border:none;background:none;font-size:34px;color:var(--mute);cursor:pointer;line-height:1}
+#pact .x:hover{color:var(--red)}
+</style>
+</head>
+<body class="ctlon">
+<header id="tabs"></header>
+<div class="title"><h1 id="h1"></h1><p class="default" id="def"></p><div class="tags" id="tags"></div></div>
+<div class="phases" id="phases"></div>
+<main id="main">
+  <section class="panel"><h2 id="lefth">Options</h2><div id="opts"></div></section>
+  <section class="panel">
+    <div id="clockwrap">
+      <h2 id="clockh">Clause clock</h2>
+      <div class="clock" id="clock">8:00</div>
+      <div class="clocklab" id="clocklab"></div>
+    </div>
+    <div class="maj" id="majbox">
+      <div class="mbox"><div class="n" id="majAll">8</div><div class="l">majority if all <span id="presentN">14</span> vote</div></div>
+      <div class="mbox" id="mbNow"><div class="n" id="majNow">–</div><div class="l">majority of <span id="votingN">–</span> voting</div></div>
+    </div>
+    <div class="spk" id="spkbox">Speaker <b id="spk">0:00</b></div>
+  </section>
+</main>
+<div id="ctl">
+  <span>Section</span><select id="secSel"><option>02</option><option>12</option></select>
+  <span>Present</span><input id="present" type="number" value="14" min="1">
+  <span>Voting</span><input id="voting" type="number" placeholder="auto" min="1" title="Leave blank to use the votes entered in the first column">
+  <span class="sep"></span>
+  <span>Debate min</span><input id="dmin" type="number" min="0" step="0.5" title="Override this clause's debate time; resets the clause clock">
+  <button id="bStart">▶ Clock</button><button id="bReset">Reset</button>
+  <button id="bS60">Speaker 60s</button><button id="bS30">30s</button><button id="bSStop">Stop</button>
+  <span id="vgrp"><button id="bRun">Runoff column</button> <button id="bFama">Fama column</button> <button id="bDef">No option → default</button></span>
+  <span id="cgrp"><button id="bSplit">Split consent items</button></span>
+  <span class="sep"></span>
+  <input id="newText" class="grow" placeholder="New option or rider text…">
+  <select id="who"></select>
+  <button id="bAddOpt">+ Option</button><button id="bAddRider">+ Rider</button>
+  <span class="sep"></span>
+  <button id="bPact">Pact so far</button><button id="bCSV">⇩ CSV record</button><button id="bLoad" title="Load a CSV record saved from this page">⇧ Load CSV</button><input type="file" id="fLoad" accept=".csv,text/csv" style="display:none">
+  <span class="k">Space clock · ←/→ clause · 1–5 phase · ↑/↓/Enter move between boxes · P pact · H hide bar · F fullscreen</span>
+</div>
+<div id="pact" class="hidden"></div>
+<script>
+/* ===== EDIT HERE: options and riders submitted in advance, by section and clause =====
+   Options get the labels O1, O2…  Each entry: [text, who submitted it]                  */
+const EXTRA = {
+  "02": { },
+  "12": { }
+};
+const RIDERS = {
+  "02": { },
+  "12": { }
+};
+/* ===== Roster for the "submitted by" dropdown ===== */
+const ROSTER = {
+  "02": [["Ethan","Boniface"],["Brendan","Oberto"],["Owen","Dandolo"],["Stella","Falier"],["Lucinda","Geoffrey"],["Emma","Baldwin"],["Paddy","Louis"],["Najla","Nivelon"],["Carlos","John"],["Montrell","Martin"],["Alice","Robert"],["Aniela","Anna"],["Neha","Branas"]],
+  "12": [["Cameron","Boniface"],["Shrihith","Oberto"],["Mark","Berthold"],["Ashe","Dandolo"],["Dary","Falier"],["Sammy","Baldwin"],["Olivia","Louis"],["Liam","Geoffrey"],["Zoë","Nivelon"],["Lily","John"],["Molly","Martin"],["Mya","Robert"],["Jaclyn","Anna"],["Ava","Branas"]]
+};
+/* ===== Clause data (from the Position Sheet and the chair card) ===== */
+const C = [
+ {n:1,t:"Method of imperial selection",min:0,vo:true,def:"A committee of barons elects the emperor after the city falls; the runner-up gets a great fief",o:["A committee of non-Venetian crusader barons","A committee half Venetian and half non-Venetian","A committee that also seats Greek nobles","Leave the method to the election committee"]},
+ {n:2,t:"Limits on the emperor’s power",min:8,def:"A council of barons and Venetians checks the emperor",o:["A strong emperor with few limits","A non-hereditary emperor checked by a mixed Venetian/crusader council","An emperor checked by strong feudal lords","An emperor who answers to the Church"]},
+ {n:3,t:"Feudalism or pronoia",min:8,noNew:true,def:"Feudalism",o:["Feudalism: hereditary fiefs and oaths of homage","Pronoia: land granted for service, revocable"]},
+ {n:4,t:"Principles of land division",min:8,def:"A quarter to the emperor; three-eighths each to Venice and the barons; land for Cistercian monasteries",o:["A quarter to the emperor; the rest to Venice and the army","Equal shares for each faction","A third to a half reserved for the Greeks","No principle; leave it to the committee"],tag:"Land box (monasteries and church holdings) is voted as one of the three riders"},
+ {n:"CI",t:"Consent items",min:0,vo:true,consent:true,def:"An item that fails is left out of the Pact",items:["Papal supremacy","Protection of non-combatants"],tag:"One yes/no vote on both items, with no debate, unless someone asks to debate one separately"},
+ {n:5,t:"Maritime trade",min:8,def:"Venetian privileges confirmed; rivals barred; a Black Sea monopoly",o:["Venice’s Chrysobull of 1082 confirmed in perpetuity, plus a monopoly","The Chrysobull confirmed, plus a monopoly on Black Sea trade only","Venice receives some concessions but the empire keeps its tax revenue","Equal rights for all Italian merchants"]},
+ {n:6,t:"Patriarch identity",min:8,def:"A Latin, chosen by the side that did not supply the emperor",o:["A Greek","A Latin","Two patriarchs, one Greek and one Latin","The side (Venetian or crusader) that did not supply the emperor chooses"]},
+ {n:7,t:"Method of Patriarch selection",min:0,vo:true,def:"Appointed by the side that did not supply the emperor",o:["Appointed directly by the crusade leaders","Chosen by the pope alone","Elected locally by clergy; the pope confirms","Two candidates offered to the pope"]},
+ {n:8,noSup:true,t:"Terms of union",min:6,noNew:true,maxR:0,def:"Latin doctrine and customs imposed (Filioque, celibate clergy, unleavened bread)",o:["The pope is head of the Church (papal supremacy)","Option A, plus Latin doctrine enforced (the Filioque)","Option B, plus Latin customs enforced (celibate clergy, unleavened bread)","Option C, plus Latin-language mass in the cathedrals (full union)"],tag:"A is already in (papal supremacy) · Vote D, then C, then B (enter yes votes) · No riders"},
+ {n:9,noSup:true,t:"Dividing the wealth",min:4,noNew:true,maxR:2,def:"Debts to Venice first, then 50/50",o:["Debts to Venice first, then 50/50 between Venice and the crusaders","Debts first, then equal shares for every crusader","Debts first, then shares by rank"]},
+ {n:10,noSup:true,t:"Church property",min:6,noNew:true,maxR:2,tag:"This debate covers relics (clause 11) too",def:"Excessive church property may be taken",o:["Protected absolutely","May be taken if deemed “excessive”","Fair game"]},
+ {n:11,noSup:true,t:"Relics",min:0,vo:true,maxR:2,tag:"Debated with clause 10",def:"Relics may not be taken",o:["May not be taken under any circumstance","Only the duly elected emperor may distribute them","May be taken by anyone"]},
+ {n:12,noSup:true,t:"Penalty for breaking the agreed-upon rules",min:5,noNew:true,maxR:2,def:"No penalty set; commanders decide",o:["Loss of any share in land and treasure","Death","Confession and penance"]},
+];
+const PH_FULL=["Support","Debate","Vote","Riders","Record"],PH_VO=["Support","Vote","Riders","Record"],PH_C=["Vote","Record"];
+const phs=c=>{const L=c.consent?PH_C:c.vo?PH_VO:PH_FULL;return L.filter(x=>!(c.noSup&&x=="Support")&&!(c.maxR===0&&x=="Riders"));};
+const KEY="mpd6";
+let S={sec:"02",cur:0,present:14,voting:null,cl:{}};
+try{const s=localStorage.getItem(KEY);if(s)S=Object.assign(S,JSON.parse(s));}catch(e){}
+Object.keys(S.cl).forEach(key=>{const i=+key.split("-")[1],k=S.cl[key];if(C[i]&&C[i].n==12&&!k.min&&!winner0(k)){k.min=5;k.left=300;}});
+function winner0(k){return (k.opts||[]).some(o=>o.win)||k.def;}
+function migrate(){Object.keys(S.cl).forEach(key=>{const i=+key.split("-")[1],k=S.cl[key],c=C[i];if(!c||typeof c.n!="number"||c.n<8||k.consent)return;
+  const started=(k.opts||[]).some(o=>o.win||o.s||o.v&&(o.v.vote||o.v.run||o.v.fama))||k.def||(k.riders||[]).length;
+  if(!started&&k.left===k.min*60){k.min=c.min;k.left=c.min*60;}});}
+migrate();
+function baseA(c,k){if(c.n!=8)return false;const ci=C.findIndex(x=>x.consent),kk=S.cl[S.sec+"-"+ci];return !!(kk&&cres(kk)[0]=="y");}
+function defOf(c){if(c.n==8){const ci=C.findIndex(x=>x.consent),k=S.cl[S.sec+"-"+ci];
+  if(k&&cres(k)[0]=="y")return "A. The pope is head of the Church (already adopted with the consent items)";}
+  return c.def;}
+function save(){try{localStorage.setItem(KEY,JSON.stringify(S));}catch(e){}}
+function st(i,sec){sec=sec||S.sec;const k0=sec+"-"+i;
+  if(!S.cl[k0]){const c=C[i];
+    if(c.consent){S.cl[k0]={ph:"Vote",consent:true,split:false,opts:[],riders:[],items:[{t:"Both items together",yes:"",no:"",s:""}].concat(c.items.map(t=>({t,yes:"",no:"",s:""}))),min:0,left:0};return S.cl[k0];}
+    const opts=c.o.map((t,j)=>({l:"ABCD"[j],t,s:"",v:{}}));
+    ((EXTRA[sec]||{})[c.n]||[]).forEach(([t,w],j)=>opts.push({l:"O"+(j+1),t,who:w,s:"",nw:1,v:{}}));
+    const riders=((RIDERS[sec]||{})[c.n]||[]).map(([t,w])=>({t,who:w,s:"",yes:"",no:""}));
+    S.cl[k0]={ph:"Support",opts,riders,min:c.min,left:c.min*60,run:false,fama:false,def:false};}
+  return S.cl[k0];}
+const $=id=>document.getElementById(id);
+let timer=null,spkT=null,spkLeft=0,pactNew=-1;
+const maj=n=>n?Math.floor(n/2)+1:"–";
+const fmt=s=>{s=Math.max(0,Math.round(s));return Math.floor(s/60)+":"+String(s%60).padStart(2,"0");};
+const num=x=>{const n=parseFloat(x);return isNaN(n)?null:n;};
+const esc=t=>String(t).replace(/[&<>"]/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[m]));
+const live=k=>k.opts.filter(o=>o.s!="drop");
+function total(k,o){
+  const r=k.run&&!o.out?num(o.v.run):null;
+  const base=r!==null?r:num(o.v.vote);
+  const f=k.fama&&!o.out?num(o.v.fama):null;
+  if(base===null&&f===null)return null;return (base||0)+(f||0);}
+function cast(k){let t=0,any=false;live(k).forEach(o=>{if(num(o.v.vote)!==null){t+=num(o.v.vote);any=true;}});return any?t:null;}
+function winner(k){return k.opts.find(o=>o.win);}
+function rstat(r){const y=num(r.yes),n=num(r.no);if(y!==null||n!==null){return (y||0)>(n||0)?"y":"n";}return r.s;}
+const ridersY=k=>k.riders.filter(r=>rstat(r)=="y");
+function cres(k){return [1,2].map(j=>rstat(k.split?k.items[j]:k.items[0]));}
+function isDone(k){if(k.consent)return cres(k).every(x=>x=="y"||x=="n");return !!winner(k)||k.def;}
+function tabLabel(i){const k=st(i),w=winner(k);let h=`${C[i].n}`;
+  if(k.consent){if(isDone(k))h+=`<span class="res">· ${cres(k).filter(x=>x=="y").length}/2</span>`;return h;}
+  if(w)h+=`<span class="res">· ${w.l}</span>`;else if(k.def)h+=`<span class="res">· Def</span>`;
+  const r=ridersY(k).length;if(isDone(k)&&r)h+=`<span class="rid">+${r}r</span>`;return h;}
+function curPh(c,k){const L=phs(c);if(!L.includes(k.ph))k.ph=L[0];return k.ph;}
+
+function render(){
+  const c=C[S.cur],k=st(S.cur),ph=curPh(c,k);
+  document.body.classList.toggle("ctlon",!$("ctl").classList.contains("hidden"));
+  $("tabs").innerHTML=C.map((x,i)=>`<div class="tab ${i==S.cur?"cur":""} ${isDone(st(i))?"done":""}" data-i="${i}">${tabLabel(i)}</div>`).join("")+`<span class="sec">Section ${S.sec}</span>`;
+  $("h1").textContent=c.consent?c.t:`Clause ${c.n}: ${c.t}`;
+  $("def").innerHTML=c.consent?`<b>If an item fails:</b> it is left out of the Pact`:`<b>If no option is adopted:</b> ${esc(defOf(c))}`;
+  const tags=[];if(c.vo&&!c.consent)tags.push("Vote only");if(c.vo||c.noNew)tags.push("No new options");if(c.tag)tags.push(c.tag);
+  $("tags").textContent=tags.join(" · ");
+  $("phases").innerHTML=phs(c).map((p,i)=>`<div class="ph ${p==ph?"cur":""}" data-p="${i}">${i+1}. ${p}</div>`).join("");
+  const ae=document.activeElement,focusId=ae&&ae.dataset?ae.dataset.f:null;
+  if(c.consent) renderConsent(c,k);
+  else if(ph=="Vote") renderVote(c,k);
+  else if(ph=="Riders"||ph=="Record") renderRiders(c,k,ph);
+  else renderOpts(c,k,ph);
+  // right panel
+  const rid=ph=="Riders"&&!c.consent&&(c.maxR??3)>0;if(k.rleft===undefined)k.rleft=RIDER_SEC;
+  const showClock=ph=="Debate"||rid;
+  $("clockwrap").classList.toggle("hidden",!showClock);
+  $("main").classList.toggle("narrow",ph=="Vote"&&!c.consent);
+  $("majbox").classList.toggle("stack",!showClock);
+  $("mbNow").classList.toggle("hidden",ph=="Support");
+  $("spkbox").classList.toggle("hidden",ph=="Support"||(ph=="Vote"&&!c.consent));
+  const cv=rid?k.rleft:k.left;
+  $("clockh").textContent=rid?"Rider clock":"Clause clock";
+  $("clock").textContent=fmt(cv);
+  $("clock").className="clock"+(cv<=0?" zero":cv<=(rid?30:60)?" warn":"");
+  $("clocklab").textContent=rid?`${RIDER_SEC/60} minutes for riders`:`${k.min} minutes of debate`;
+  $("majAll").textContent=maj(S.present);$("presentN").textContent=S.present;
+  let vN=S.voting;
+  if(!vN&&ph=="Vote"&&!c.consent)vN=cast(k);
+  if(!vN&&c.consent){const r=k.items.find(r=>num(r.yes)!==null||num(r.no)!==null);if(r)vN=(num(r.yes)||0)+(num(r.no)||0);}
+  if(!vN&&(ph=="Riders"||ph=="Record")){const r=k.riders.find(r=>num(r.yes)!==null||num(r.no)!==null);if(r)vN=(num(r.yes)||0)+(num(r.no)||0);}
+  $("majNow").textContent=maj(vN);$("votingN").textContent=vN||"–";
+  $("spk").textContent=fmt(spkLeft);$("spk").className=spkLeft>0&&spkLeft<=15?"warn":"";
+  $("secSel").value=S.sec;$("present").value=S.present;$("voting").value=S.voting||"";
+  if(document.activeElement!==$("dmin"))$("dmin").value=c.vo?"":k.min;$("dmin").disabled=!!c.vo;
+  $("vgrp").classList.toggle("hidden",c.consent||ph!="Vote");$("cgrp").classList.toggle("hidden",!c.consent);
+  $("bRun").classList.toggle("on",!!k.run);$("bFama").classList.toggle("on",!!k.fama);$("bDef").classList.toggle("on",!!k.def);$("bSplit").classList.toggle("on",!!k.split);
+  const ros=ROSTER[S.sec]||[];const wv=$("who").value;
+  $("who").innerHTML=`<option value="">Submitted by…</option>`+ros.map(([n,ch])=>`<option>${ch} (${n})</option>`).join("")+`<option>Instructor</option>`;
+  if([...$("who").options].some(o=>o.value==wv))$("who").value=wv;
+  if(focusId){const el=document.querySelector(`[data-f="${focusId}"]`);if(el){el.focus();const L=el.value.length;try{el.setSelectionRange(L,L);}catch(e){}}}
+  save();
+}
+function renderOpts(c,k,ph){
+  $("lefth").textContent=ph=="Support"?"Options · two supporters each":"Options";
+  const list=k.opts.map((o,i)=>[o,i]).filter(([o])=>ph=="Support"||o.s!="drop"||o.dropDebate);
+  $("opts").innerHTML=list.map(([o,i])=>{
+    if(i===0&&baseA(c,k))return `<div class="opt base"><div class="let">A</div><div class="otext">${esc(o.t)}</div><span class="stag">Already adopted</span></div>`;
+    const dropped=o.s=="drop",arg=ph=="Debate"&&o.arg&&!dropped,sup=o.s=="sup";
+    const tag=dropped?"":arg?"Now arguing":ph=="Support"&&sup?"✓ Supported":"";
+    return `<div class="opt ${dropped?"dropped":""} ${sup&&!dropped?"sup":""} ${arg?"arg":""} ${o.nw?"new":""}" data-o="${i}"><div class="let">${o.l}</div><div class="otext">${esc(o.t)}${o.who?`<span class="who">submitted by ${esc(o.who)}</span>`:""}</div>${tag?`<span class="stag">${tag}</span>`:""}${o.nw?`<button class="del" data-delo="${i}" title="Remove">✕</button>`:""}</div>`;}).join("")
+    +(live(k).length==0?`<div class="warnbanner">Every option has been dropped. Go to Vote and record the historical default.</div>`:"")
+    +`<div class="hint">${ph=="Support"?"Click an option: supported → dropped → clear.":(c.noSup?"Click an option: now arguing → dropped (no case) → clear.":"Click an option: now arguing → dropped (no case) → clear. Options dropped at Support don’t appear here.")}</div>`;
+}
+function ninp(f,val,col,row){return `<input class="n" type="text" inputmode="numeric" autocomplete="off" data-f="${f}" data-col="${col}" data-row="${row}" value="${val??""}">`;}
+function renderVote(c,k){
+  $("lefth").textContent=c.n==8?"Vote · yes votes, starting with D":"Vote";
+  const L=k.opts.map((o,i)=>[o,i]).filter(([o,i])=>o.s!="drop"&&!(i===0&&baseA(c,k)));
+  if(c.n==8)L.reverse();
+  if(!L.length){$("opts").innerHTML=k.def?`<div class="defbanner">No option adopted. The historical default stands: ${esc(defOf(c))}</div>`:`<div class="warnbanner">Every option was dropped. Click “No option → default” in the bar.</div>`;return;}
+  const showTot=k.run||k.fama;
+  const tots=L.filter(([o])=>!o.out).map(([o])=>total(k,o)).filter(x=>x!==null);const top=tots.length?Math.max(...tots):null;
+  let h=`<table class="vt"><tr><th class="l" colspan="2">Option</th><th>Vote</th>${k.run?"<th>Runoff</th>":""}${k.fama?"<th>+ Fama</th>":""}${showTot?"<th>Total</th>":""}<th>Win</th></tr>`;
+  h+=L.map(([o,i],r)=>{const t=total(k,o);const lead=!o.out&&t!==null&&t===top;
+    return `<tr class="${o.win?"win":""} ${o.out?"out":""} ${o.nw?"new":""}"><td class="lc" data-x="${i}"><div class="let">${o.l}</div></td><td class="tx" data-x="${i}">${esc(o.t)}</td>`+
+    `<td class="num">${ninp("v-"+i+"-vote",o.v.vote,"vote",r)}</td>`+
+    (k.run?`<td class="num">${o.out?"":ninp("v-"+i+"-run",o.v.run,"run",r)}</td>`:"")+
+    (k.fama?`<td class="num">${o.out?"":ninp("v-"+i+"-fama",o.v.fama,"fama",r)}</td>`:"")+
+    (showTot?`<td class="tot">${o.out||t===null?"·":t}</td>`:"")+
+    `<td class="lead" data-w="${i}" title="Click to mark the winner">${o.win?"✓":lead?"◀":""}</td></tr>`;}).join("");
+  h+=`</table>`;
+  if(baseA(c,k)&&!k.def)h+=`<div class="basenote">A (papal supremacy) is already adopted and stands if B, C and D all fail.</div>`;
+  if(k.def)h+=`<div class="defbanner">No option adopted. The historical default stands: ${esc(defOf(c))}</div>`;
+  h+=`<div class="hint">Click a letter or option text to take it out of contention (again to restore). ◀ marks the current leader; click the Win column to mark the winner. Runoff and fama boxes appear only for options still in contention.</div>`;
+  $("opts").innerHTML=h;
+}
+function renderConsent(c,k){
+  $("lefth").textContent=k.split?"Consent items · voted separately":"Consent items · one vote on both";
+  const rows=k.split?[1,2]:[0];
+  let h=`<div style="font-size:24px;margin:2px 0 12px">${c.items.map((t,j)=>`<div>${j+1}. ${esc(t)}</div>`).join("")}</div>`;
+  h+=`<table class="vt"><tr><th class="l" colspan="2">Vote</th><th>Yes</th><th>No</th><th></th></tr>`;
+  h+=rows.map((j,r)=>{const it=k.items[j],s=rstat(it);return `<tr class="${s=="y"?"win":""}"><td class="lc"><div class="let">${j==0?"1+2":j}</div></td><td class="tx" data-ci="${j}">${esc(it.t)}</td>`+
+    `<td class="num">${ninp("c-"+j+"-yes",it.yes,"yes",r)}</td><td class="num">${ninp("c-"+j+"-no",it.no,"no",r)}</td>`+
+    `<td class="rst ${s}">${s=="y"?"✓ adopted":s=="n"?"✗ failed":""}</td></tr>`;}).join("")+`</table>`;
+  $("opts").innerHTML=h;
+}
+function renderRiders(c,k,ph){
+  const mr=c.maxR??3;$("lefth").textContent=ph=="Riders"?(mr?`Riders (up to ${mr===3?"three":mr===2?"two":mr})`:"Riders"):"Result";
+  const w=winner(k);
+  let h=w?`<div class="opt win"><div class="let">${w.l}</div><div class="otext">${esc(w.t)}</div></div>`:k.def?`<div class="defbanner">Historical default: ${esc(defOf(c))}</div>`:`<div class="note">No option marked as the winner yet.</div>`;
+  if(k.riders.length){
+    h+=`<table class="vt" style="margin-top:12px"><tr><th class="l" colspan="2">Rider</th><th>Yes</th><th>No</th><th></th><th></th></tr>`;
+    h+=k.riders.map((r,i)=>{const s=rstat(r);return `<tr class="${s=="y"?"win":""}"><td class="lc"><div class="let">R${i+1}</div></td><td class="tx" data-r="${i}">${esc(r.t)}${r.who?`<span class="who">${esc(r.who)}</span>`:""}</td>`+
+      `<td class="num">${ninp("r-"+i+"-yes",r.yes,"yes",i)}</td><td class="num">${ninp("r-"+i+"-no",r.no,"no",i)}</td>`+
+      `<td class="rst ${s}">${s=="y"?"✓ adopted":s=="n"?"✗ failed":""}</td><td><button class="del" data-delr="${i}" title="Remove">✕</button></td></tr>`;}).join("")+`</table>`;
+  }else if(ph=="Riders") h+=(c.maxR===0?`<div class="note">No riders on this clause.</div>`:`<div class="note">No riders yet. Type one in the bar below and click + Rider. Each person may propose one rider per day.</div>`);
+  $("opts").innerHTML=h;
+}
+const RIDER_SEC=120;
+function tick(){const k=st(S.cur);if(k.ph=="Riders"){k.rleft=(k.rleft??RIDER_SEC)-1;if(k.rleft<=0){k.rleft=0;stop();}}else{k.left-=1;if(k.left<=0){k.left=0;stop();}}render();}
+function stop(){clearInterval(timer);timer=null;$("bStart").textContent="▶ Clock";}
+function toggle(){const c=C[S.cur],k0=st(S.cur);const rid=k0.ph=="Riders"&&!c.consent&&(c.maxR??3)>0;if(c.vo&&!rid)return;if(!rid&&k0.ph!="Debate"&&k0.ph!="Support")return;if(timer)stop();else{timer=setInterval(tick,1000);$("bStart").textContent="❚❚ Clock";const k=st(S.cur);if(k.ph=="Support")k.ph="Debate";}render();}
+function spk(n){clearInterval(spkT);spkLeft=n;render();spkT=setInterval(()=>{spkLeft--;if(spkLeft<=0){spkLeft=0;clearInterval(spkT);}render();},1000);}
+function setPhase(p){const c=C[S.cur],k=st(S.cur),L=phs(c);if(p>=L.length)return;stop();k.ph=L[p];if(L[p]=="Record"){pactNew=S.cur;openPact();}render();}
+document.addEventListener("input",e=>{
+  const f=e.target.dataset.f;if(!f)return;const k=st(S.cur);const a=f.split("-");
+  const v=e.target.value.replace(/[^0-9]/g,"");
+  if(a[0]=="v")k.opts[+a[1]].v[a[2]]=v;
+  else if(a[0]=="r")k.riders[+a[1]][a[2]]=v;
+  else if(a[0]=="c")k.items[+a[1]][a[2]]=v;
+  render();
+});
+document.addEventListener("click",e=>{
+  if(e.target.closest("#pact .x")){closePact();return;}
+  const t=e.target.closest("[data-i],[data-p],[data-o],[data-w],[data-x],[data-r],[data-delo],[data-delr],[data-ci]");if(!t)return;
+  const c=C[S.cur],k=st(S.cur),ph=k.ph;
+  if(t.dataset.delo!==undefined){e.stopPropagation();k.opts.splice(+t.dataset.delo,1);}
+  else if(t.dataset.delr!==undefined){k.riders.splice(+t.dataset.delr,1);}
+  else if(t.dataset.i!==undefined){stop();S.cur=+t.dataset.i;}
+  else if(t.dataset.p!==undefined){setPhase(+t.dataset.p);return;}
+  else if(t.dataset.w!==undefined){const o=k.opts[+t.dataset.w];if(o.out)return;const was=o.win;k.opts.forEach(x=>x.win=false);if(!was){o.win=true;k.def=false;}}
+  else if(t.dataset.x!==undefined){const o=k.opts[+t.dataset.x];o.out=!o.out;if(o.out)o.win=false;}
+  else if(t.dataset.o!==undefined){const o=k.opts[+t.dataset.o];
+    if(ph=="Support"){o.s=o.s==""?"sup":o.s=="sup"?"drop":"";o.dropDebate=false;}
+    else{ if(o.s=="drop"){o.s="sup";o.dropDebate=false;o.arg=false;}
+          else if(o.arg){o.arg=false;o.s="drop";o.dropDebate=true;}
+          else{k.opts.forEach(x=>x.arg=false);o.arg=true;} }}
+  else if(t.dataset.ci!==undefined){const r=k.items[+t.dataset.ci];if(num(r.yes)===null&&num(r.no)===null)r.s=r.s==""?"y":r.s=="y"?"n":"";}
+  else if(t.dataset.r!==undefined){const r=k.riders[+t.dataset.r];if(num(r.yes)===null&&num(r.no)===null)r.s=r.s==""?"y":r.s=="y"?"n":"";}
+  render();
+});
+$("bStart").onclick=toggle;$("bReset").onclick=()=>{stop();const k=st(S.cur);if(k.ph=="Riders")k.rleft=RIDER_SEC;else k.left=k.min*60;render();};
+$("bS60").onclick=()=>spk(60);$("bS30").onclick=()=>spk(30);$("bSStop").onclick=()=>{clearInterval(spkT);spkLeft=0;render();};
+$("secSel").onchange=e=>{stop();S.sec=e.target.value;render();};
+$("present").oninput=e=>{S.present=+e.target.value||0;render();};
+$("voting").oninput=e=>{S.voting=+e.target.value||null;render();};
+$("dmin").onchange=e=>{const v=parseFloat(e.target.value);if(isNaN(v)||C[S.cur].vo)return;stop();const k=st(S.cur);k.min=v;k.left=Math.round(v*60);render();};
+const tg=g=>{const k=st(S.cur);k[g]=!k[g];if(g=="def"&&k.def)k.opts.forEach(o=>o.win=false);render();};
+$("bRun").onclick=()=>tg("run");$("bFama").onclick=()=>tg("fama");$("bDef").onclick=()=>tg("def");$("bSplit").onclick=()=>tg("split");
+$("bAddOpt").onclick=()=>{const v=$("newText").value.trim();if(!v)return;const c=C[S.cur],k=st(S.cur);if(c.vo||c.noNew){$("newText").value="";$("newText").placeholder="No new options on this clause";return;}const n=k.opts.filter(o=>o.nw).length+1;k.opts.push({l:"O"+n,t:v,who:$("who").value,s:"",nw:1,v:{}});$("newText").value="";$("who").value="";render();};
+$("bAddRider").onclick=()=>{const v=$("newText").value.trim();if(!v)return;const c=C[S.cur],k=st(S.cur);if(c.consent)return;const mr=c.maxR??3;
+  const msg=m=>{$("newText").value="";$("newText").placeholder=m;};
+  if(mr===0)return msg("No riders on this clause");
+  if(k.riders.length>=mr)return msg(`Only ${mr} rider${mr>1?"s":""} on this clause`);
+  const who=$("who").value,day=new Date().toDateString();
+  if(who){const used=C.some((x,i)=>{const kk=S.cl[S.sec+"-"+i];return kk&&(kk.riders||[]).some(r=>r.who===who&&r.day===day);});if(used)return msg(`${who} has already proposed a rider today`);}
+  k.riders.push({t:v,who,s:"",yes:"",no:"",day});$("newText").value="";$("who").value="";render();};
+function openPact(){
+  const p=$("pact");
+  let h=`<button class="x" title="Close (P or Esc)">✕</button><h2>The March Pact so far · Section ${S.sec}</h2><ol>`;
+  C.forEach((c,i)=>{const k=S.cl[S.sec+"-"+i];if(!k)return;const cls=i==pactNew?"new":"";
+    if(c.consent){const r=cres(k);if(r.some(x=>x))h+=`<li class="${cls}"><b>Consent items</b><ul>${c.items.map((t,j)=>`<li>${esc(t)}: ${r[j]=="y"?"adopted":r[j]=="n"?"failed":"not voted"}</li>`).join("")}</ul></li>`;return;}
+    const w=winner(k);const rs=ridersY(k);
+    if(w||k.def||rs.length)h+=`<li class="${cls}"><b>Clause ${c.n}, ${esc(c.t)}:</b> ${w?`${w.l}. ${esc(w.t)}`:k.def?`<span class="dflt">historical default: ${esc(defOf(c))}</span>`:"(no winner marked)"}${rs.length?`<ul>${rs.map(r=>`<li>Rider: ${esc(r.t)}</li>`).join("")}</ul>`:""}</li>`;});
+  p.innerHTML=h+"</ol>";p.classList.remove("hidden");}
+function closePact(){$("pact").classList.add("hidden");pactNew=-1;}
+$("bPact").onclick=()=>{$("pact").classList.contains("hidden")?openPact():closePact();};
+function csv(){
+  const q=v=>{v=v==null?"":String(v);return /[",\n]/.test(v)?'"'+v.replace(/"/g,'""')+'"':v;};
+  const rows=[["exported","section","clause","clause_title","item","label","text","submitted_by","support","vote_status","vote","runoff","fama","total","rider_yes","rider_no","clause_result","debate_min_set","debate_time_left","present_now"]];
+  const now=new Date().toLocaleString();
+  ["02","12"].forEach(sec=>C.forEach((c,i)=>{const k=S.cl[sec+"-"+i];if(!k)return;
+    if(c.consent){const r=cres(k);k.items.forEach((it,j)=>rows.push([now,sec,c.n,c.t,"consent",j==0?"both":"item "+j,it.t,"","",j==0?(k.split?"not used (split)":r.every(x=>x=="y")?"adopted":r.every(x=>x=="n")?"failed":""):(k.split?(r[j-1]=="y"?"adopted":r[j-1]=="n"?"failed":""):""),"","","","",it.yes,it.no,r.join("/"),"","",S.present]));return;}
+    const w=winner(k);const res=w?w.l:k.def?"default":"";
+    k.opts.forEach(o=>rows.push([now,sec,c.n,c.t,"option",o.l,o.t,o.who||"",o.s=="drop"?(o.dropDebate?"dropped (no case)":"dropped"):o.s=="sup"?"supported":"",o.win?"adopted":o.out?"out of contention":"",o.v.vote,o.v.run,o.v.fama,total(k,o),"","",res,c.vo?"":k.min,c.vo?"":fmt(k.left),S.present]));
+    k.riders.forEach((r,j)=>rows.push([now,sec,c.n,c.t,"rider","R"+(j+1),r.t,r.who||"","",rstat(r)=="y"?"adopted":rstat(r)=="n"?"failed":"","","","","",r.yes,r.no,res,"","",S.present]));
+  }));
+  const blob=new Blob(["﻿"+rows.map(r=>r.map(q).join(",")).join("\r\n")],{type:"text/csv"});
+  const d=new Date(),pad=n=>String(n).padStart(2,"0");
+  const a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download=`March_Pact_Record_${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}_${pad(d.getHours())}${pad(d.getMinutes())}.csv`;
+  document.body.appendChild(a);a.click();a.remove();
+}
+$("bCSV").onclick=csv;
+/* ===== Load a CSV record saved from this page (replaces the sections it contains) ===== */
+function parseCSV(s){s=s.replace(/^﻿/,"");const rows=[];let row=[],f="",q=false;
+  for(let i=0;i<s.length;i++){const ch=s[i];
+    if(q){if(ch=='"'){if(s[i+1]=='"'){f+='"';i++;}else q=false;}else f+=ch;}
+    else if(ch=='"')q=true;else if(ch==","){row.push(f);f="";}
+    else if(ch=="\n"||ch=="\r"){if(ch=="\r"&&s[i+1]=="\n")i++;row.push(f);rows.push(row);row=[];f="";}
+    else f+=ch;}
+  if(f!==""||row.length){row.push(f);rows.push(row);}return rows.filter(r=>r.length>1);}
+function loadCSV(text){
+  const rows=parseCSV(text);if(!rows.length)throw new Error("empty file");
+  const H=rows[0],ix=n=>H.indexOf(n);
+  ["section","clause","item","label","text"].forEach(n=>{if(ix(n)<0)throw new Error("this isn’t a CSV record from this page (no “"+n+"” column)");});
+  const g=(r,n)=>{const j=ix(n);return j<0?"":(r[j]??"");};
+  const secs=new Set(rows.slice(1).map(r=>g(r,"section")).filter(Boolean));
+  secs.forEach(sec=>Object.keys(S.cl).forEach(k=>{if(k.startsWith(sec+"-"))delete S.cl[k];}));
+  let n=0;
+  rows.slice(1).forEach(r=>{
+    const sec=g(r,"section"),ci=C.findIndex(c=>String(c.n)==g(r,"clause"));if(!sec||ci<0)return;
+    const c=C[ci],key=sec+"-"+ci;
+    if(!S.cl[key]){n++;
+      if(c.consent)S.cl[key]={ph:"Record",consent:true,split:false,opts:[],riders:[],items:[],min:0,left:0};
+      else{const mn=num(g(r,"debate_min_set"));const tl=g(r,"debate_time_left");const m=tl.match(/^(\d+):(\d\d)$/);
+        S.cl[key]={ph:"Support",opts:[],riders:[],min:mn!==null?mn:c.min,left:m?(+m[1]*60+ +m[2]):(mn!==null?mn:c.min)*60,run:false,fama:false,def:g(r,"clause_result")=="default"};}}
+    const k=S.cl[key],it=g(r,"item"),st=g(r,"vote_status");
+    if(it=="consent"){const o={t:g(r,"text"),yes:g(r,"rider_yes"),no:g(r,"rider_no"),s:""};
+      if(o.yes===""&&o.no===""&&st)o.s=st=="adopted"?"y":st=="failed"?"n":"";
+      if(st.startsWith("not used"))k.split=true;
+      k.items.push(o);return;}
+    if(it=="option"){const sup=g(r,"support"),l=g(r,"label");
+      const o={l,t:g(r,"text"),s:sup.startsWith("dropped")?"drop":sup=="supported"?"sup":"",v:{}};
+      if(sup=="dropped (no case)")o.dropDebate=true;
+      if(g(r,"submitted_by"))o.who=g(r,"submitted_by");
+      if(/^O\d+$/.test(l))o.nw=1;
+      if(st=="adopted")o.win=true;if(st=="out of contention")o.out=true;
+      ["vote","runoff","fama"].forEach(f=>{const v=g(r,f);if(v!=="")o.v[f=="runoff"?"run":f]=v;});
+      if(o.v.run!==undefined)k.run=true;if(o.v.fama!==undefined)k.fama=true;
+      k.opts.push(o);}
+    else if(it=="rider"){const o={t:g(r,"text"),who:g(r,"submitted_by"),s:"",yes:g(r,"rider_yes"),no:g(r,"rider_no")};
+      if(o.yes===""&&o.no===""&&st)o.s=st=="adopted"?"y":st=="failed"?"n":"";
+      k.riders.push(o);}
+  });
+  Object.keys(S.cl).forEach(key=>{const k=S.cl[key];if(!k.consent&&(winner(k)||k.def))k.ph="Record";});
+  const pr=rows.length>1?num(g(rows[rows.length-1],"present_now")):null;if(pr!==null)S.present=pr;
+  migrate();
+  return {n,secs:[...secs]};}
+$("bLoad").onclick=()=>$("fLoad").click();
+$("fLoad").onchange=e=>{const f=e.target.files[0];if(!f)return;const rd=new FileReader();
+  rd.onload=()=>{try{stop();const r=loadCSV(rd.result);if(r.secs.length&&!r.secs.includes(S.sec))S.sec=r.secs[0];render();
+      $("bLoad").textContent="✓ Loaded · Section "+r.secs.join(" & ");}
+    catch(err){$("bLoad").textContent="✗ Couldn’t load: "+err.message;}
+    setTimeout(()=>{$("bLoad").textContent="⇧ Load CSV";},6000);e.target.value="";};
+  rd.readAsText(f);};
+
+document.addEventListener("keydown",e=>{
+  if(e.key=="Escape"){closePact();return;}
+  const el=e.target;
+  if(el.classList&&el.classList.contains("n")&&["ArrowUp","ArrowDown","Enter"].includes(e.key)){
+    e.preventDefault();const col=el.dataset.col,row=+el.dataset.row;
+    const all=[...document.querySelectorAll(`input.n[data-col="${col}"]`)].sort((a,b)=>a.dataset.row-b.dataset.row);
+    const i=all.indexOf(el),j=e.key=="ArrowUp"?i-1:i+1;if(all[j]){all[j].focus();all[j].select();}
+    return;}
+  if(el.tagName=="INPUT"||el.tagName=="SELECT")return;
+  if(e.key==" "){e.preventDefault();toggle();}
+  else if(e.key=="ArrowRight"&&S.cur<C.length-1){stop();S.cur++;render();}
+  else if(e.key=="ArrowLeft"&&S.cur>0){stop();S.cur--;render();}
+  else if("12345".includes(e.key)){setPhase(+e.key-1);}
+  else if(e.key=="h"||e.key=="H"){$("ctl").classList.toggle("hidden");render();}
+  else if(e.key=="f"||e.key=="F"){document.fullscreenElement?document.exitFullscreen():document.documentElement.requestFullscreen().catch(()=>{});}
+  else if(e.key=="p"||e.key=="P"){$("pact").classList.contains("hidden")?openPact():closePact();}
+});
+render();
+</script>
+</body>
+</html>

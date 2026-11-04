@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>The Sack of Constantinople</title>
+<link href="https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,500;0,600;1,500&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#F6F1E7;--card:#FFFDF8;--line:#E0D6C2;--navy:#1F2430;--text:#2B3040;--mute:#5E6475;--red:#8C2F39;--redbg:#F6E3E5;--win:#2E6B4A;--winbg:#E4F0E8;--amber:#8A5A12;--amberbg:#FBEFD9}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--text);font-family:"IBM Plex Sans",Arial,sans-serif;font-size:17px;line-height:1.5}
+header{background:var(--navy);color:#C9CCD6;padding:12px 16px;font-size:14px;letter-spacing:.08em;text-transform:uppercase;display:flex;justify-content:space-between;gap:12px}
+main{max-width:720px;margin:0 auto;padding:20px 16px 60px}
+h1{font-family:"EB Garamond",Georgia,serif;font-weight:600;color:var(--navy);font-size:40px;line-height:1.1;margin:8px 0 6px}
+h2{font-family:"EB Garamond",Georgia,serif;font-weight:600;color:var(--navy);font-size:28px;margin:0 0 10px}
+.sub{color:var(--mute);margin:0 0 18px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:18px 18px;margin-bottom:16px}
+label{display:block;font-weight:600;color:var(--navy);margin:12px 0 6px}
+input[type=text],input[type=password],input[type=number],select{width:100%;font:inherit;padding:10px 12px;border:1px solid var(--line);border-radius:8px;background:#fff;color:var(--navy)}
+.seg{display:flex;gap:8px}
+.seg button{flex:1}
+button{font:inherit;font-weight:600;padding:12px 16px;border-radius:8px;border:1px solid var(--navy);background:#fff;color:var(--navy);cursor:pointer}
+button.primary{background:var(--navy);color:#fff}
+button.on{background:var(--navy);color:#fff}
+button:disabled{opacity:.45;cursor:not-allowed}
+.row{display:flex;gap:10px;flex-wrap:wrap;margin-top:16px}
+.err{color:var(--red);font-weight:600;margin-top:10px;min-height:1.2em}
+.chars{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:10px;margin-top:6px}
+.ch{text-align:left;padding:12px 14px;border:1px solid var(--line);font-weight:500;display:flex;justify-content:space-between;gap:8px;align-items:center}
+.ch .tag{font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:var(--mute);font-weight:600}
+.ch.done{color:#A9A9A9}.ch.done .tag{color:var(--win)}
+.place{font-family:"EB Garamond",Georgia,serif;font-size:30px;color:var(--navy);font-weight:600;line-height:1.15}
+.place small{display:block;font-family:"IBM Plex Sans",Arial,sans-serif;font-size:14px;color:var(--mute);font-weight:500;letter-spacing:.04em}
+.qnum{font-size:13px;letter-spacing:.08em;text-transform:uppercase;color:var(--mute);font-weight:600;margin-bottom:6px}
+.prompt{font-family:"EB Garamond",Georgia,serif;font-size:21px;line-height:1.4;color:var(--navy);margin:0 0 14px}
+.choice{display:flex;gap:12px;align-items:flex-start;text-align:left;width:100%;margin:0 0 8px;padding:12px 14px;border:1px solid var(--line);font-weight:400;color:var(--text);background:#fff}
+.choice .l{flex:none;width:30px;height:30px;border-radius:15px;background:var(--navy);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:600}
+.choice.sel{border:2px solid var(--navy);background:#EEF0F4}
+.lockbar{position:sticky;bottom:0;background:var(--bg);padding:10px 0;border-top:1px solid var(--line);margin-top:8px}
+.narr{font-family:"EB Garamond",Georgia,serif;font-size:20px;line-height:1.45;color:var(--navy);border-left:4px solid var(--amber);padding:4px 0 4px 14px;margin:0}
+.past{font-size:15px;color:var(--mute);margin-bottom:10px}
+.past b{color:var(--navy)}
+.stats{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:10px 0}
+.stat{border:1px solid var(--line);border-radius:8px;padding:10px 12px;background:#fff}
+.stat .n{font-size:34px;font-weight:600;color:var(--navy);line-height:1}
+.stat .l{font-size:13px;color:var(--mute);letter-spacing:.04em}
+.code{font-family:"IBM Plex Sans",monospace;font-size:34px;font-weight:600;letter-spacing:.06em;color:var(--navy);background:var(--amberbg);border:2px dashed var(--amber);border-radius:10px;padding:14px;text-align:center;margin:10px 0}
+.note{font-size:15px;color:var(--mute)}
+.warn{background:var(--amberbg);border:1px solid var(--amber);color:var(--amber);border-radius:8px;padding:10px 12px;font-size:15px;font-weight:500}
+.hidden{display:none!important}
+</style>
+</head>
+<body>
+<header><span>HIST 1200 · 1204</span><span id="who"></span></header>
+<main id="app"></main>
+<script src="sackdata.js"></script>
+<script>
+const CHARS={1:"Boniface of Montferrat",11:"Oberto of Biandrate",16:"Berthold of Katzenelnbogen",2:"Enrico Dandolo",7:"Angelo Falier",3:"Baldwin of Flanders",6:"Louis of Blois",15:"Geoffrey of Villehardouin",4:"Nivelon of Soissons",8:"John of Noyon",12:"Martin of Pairis",5:"Robert of Clari",10:"Empress Anna",14:"Theodore Branas"};
+const SECTIONS={"02":[1,11,2,7,15,3,6,4,8,12,5,10,14],"12":[1,11,16,2,7,3,6,15,4,8,12,5,10,14]};
+const ORD=["1st","2nd","3rd","4th","5th","6th"];
+const $=id=>document.getElementById(id);
+const esc=s=>String(s??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+let S={pass:"",sec:"",charId:null,state:null,status:{}};
+try{const x=JSON.parse(sessionStorage.getItem("sack1"));if(x)S={...S,...x,state:null}}catch(e){}
+const keep=()=>{try{sessionStorage.setItem("sack1",JSON.stringify({pass:S.pass,sec:S.sec,charId:S.charId}))}catch(e){}};
+async function api(body){
+  const r=await fetch("/api/sack",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({pass:S.pass,sec:S.sec,charId:S.charId,...body})});
+  let j={};try{j=await r.json()}catch(e){}
+  if(!r.ok)throw new Error(j.error||"The server didn’t answer. Check your connection and try again.");
+  return j}
+const placeName=p=>`${REGIONS[p[0]]}, ${ORD[+p[1]-1]} place`;
+const setWho=()=>{$("who").textContent=S.charId?`${CHARS[S.charId]} · Section ${S.sec}`:""};
+
+function screenLogin(msg){
+  setWho();
+  $("app").innerHTML=`<h1>The Sack of Constantinople</h1><p class="sub">The city has fallen. Sign in to begin your part in the sack.</p>
+  <div class="card"><label for="pc">Class passcode</label><input id="pc" type="password" autocomplete="off" value="${esc(S.pass)}">
+  <label>Your section</label><div class="seg"><button data-s="02" class="${S.sec==="02"?"on":""}">Section 02</button><button data-s="12" class="${S.sec==="12"?"on":""}">Section 12</button></div>
+  <div class="row"><button class="primary" id="go">Continue</button></div><div class="err" id="err">${esc(msg||"")}</div></div>`;
+  document.querySelectorAll("[data-s]").forEach(b=>b.onclick=()=>{S.sec=b.dataset.s;document.querySelectorAll("[data-s]").forEach(x=>x.classList.toggle("on",x===b))});
+  $("pc").onkeydown=e=>{if(e.key==="Enter")$("go").click()};
+  $("go").onclick=async()=>{S.pass=$("pc").value.trim();if(!S.pass||!S.sec){$("err").textContent="Enter the passcode and choose your section.";return}
+    $("go").disabled=true;try{const j=await api({action:"login",charId:null});S.status=j.status;keep();screenChars()}catch(e){$("err").textContent=e.message;$("go").disabled=false}}}
+
+function screenChars(){
+  S.charId=null;keep();setWho();
+  const tag={done:"Done",started:"In progress",refused:"Refused",ready:"",waiting:""};
+  $("app").innerHTML=`<h1>Who are you?</h1><p class="sub">Choose your character in Section ${S.sec}.</p>
+  <div class="chars">${SECTIONS[S.sec].map(id=>{const st=S.status[id]||"waiting";return`<button class="ch ${st}" data-id="${id}"><span>${CHARS[id]}</span><span class="tag">${tag[st]||""}</span></button>`}).join("")}</div>
+  <div class="row"><button id="back">◂ Back</button></div><div class="err" id="err"></div>`;
+  $("back").onclick=()=>screenLogin();
+  document.querySelectorAll(".ch").forEach(b=>b.onclick=()=>{S.charId=+b.dataset.id;keep();load()})}
+
+async function load(){
+  setWho();
+  $("app").innerHTML=`<p class="sub">Loading…</p>`;
+  try{const j=await api({action:"start"});S.state=j;route()}catch(e){screenChars();$("err").textContent=e.message}}
+
+function route(){
+  const st=S.state;
+  if(st.waiting)return screenMsg("Your place isn’t assigned yet","Your instructor assigns places after the sack order is set in class. Wait a moment, then check again.",true);
+  if(st.refused)return screenMsg("You refused to take part","You chose not to join the sack. There’s nothing more to do here. If that’s a mistake, tell your instructor.",false);
+  if(st.code)return screenDone();
+  if(!st.answers.length&&!S.confirmed)return screenConfirm();
+  if(st.answers.length<3)return screenQuestion();
+  return screenTurnIn()}
+
+function screenMsg(title,text,retry){
+  $("app").innerHTML=`<h1>${esc(title)}</h1><div class="card"><p>${esc(text)}</p><div class="row">${retry?'<button class="primary" id="again">Check again</button>':""}<button id="back">◂ Not you? Choose again</button></div></div>`;
+  if(retry)$("again").onclick=load;$("back").onclick=refreshChars}
+
+async function refreshChars(){try{const j=await api({action:"login",charId:null});S.status=j.status}catch(e){}screenChars()}
+
+function screenConfirm(){
+  const p=S.state.place;
+  $("app").innerHTML=`<h1>Is this you?</h1><div class="card">
+  <p style="margin-top:0">You are <b>${esc(CHARS[S.charId])}</b>, Section ${S.sec}.</p>
+  <div class="place">${esc(placeName(p))}<small>Your place in the sack · code ${p}</small></div>
+  <p class="warn" style="margin-top:16px">Once you begin, each choice is final. You can’t go back or change an answer, even if you reload the page.</p>
+  <div class="row"><button class="primary" id="yes">Yes, begin the sack</button><button id="no">◂ That’s not me</button></div></div>`;
+  $("yes").onclick=()=>{S.confirmed=true;screenQuestion()};$("no").onclick=refreshChars}
+
+function pastHtml(){
+  const sc=SACK[S.state.place];
+  return S.state.answers.map((l,i)=>`<div class="card"><div class="qnum">Choice ${i+1}: ${l}</div><p class="narr">${esc(sc.n[String(i+1)]?.[l]||"")}</p></div>`).join("")}
+
+function screenQuestion(){
+  const sc=SACK[S.state.place],q=S.state.answers.length,Q=sc.q[q];let sel=null;
+  $("app").innerHTML=`<div class="place" style="margin:8px 0 14px">${esc(placeName(S.state.place))}<small>Question ${q+1} of 3</small></div>
+  ${pastHtml()}
+  <div class="card"><div class="qnum">Question ${q+1}</div><p class="prompt">${esc(Q.t)}</p>
+  ${Q.c.map(([l,t])=>`<button class="choice" data-l="${l}"><span class="l">${l}</span><span>${esc(t)}</span></button>`).join("")}
+  <div class="lockbar"><button class="primary" id="lock" disabled>Choose an option</button><div class="err" id="err"></div></div></div>`;
+  document.querySelectorAll(".choice").forEach(b=>b.onclick=()=>{sel=b.dataset.l;document.querySelectorAll(".choice").forEach(x=>x.classList.toggle("sel",x===b));$("lock").disabled=false;$("lock").textContent=`Lock in choice ${sel}`});
+  $("lock").onclick=async()=>{if(!sel)return;$("lock").disabled=true;$("lock").textContent="Saving…";
+    try{const j=await api({action:"answer",q,letter:sel});S.state=j;screenNarrative(q)}catch(e){$("err").textContent=e.message;$("lock").disabled=false;$("lock").textContent=`Lock in choice ${sel}`}};
+  window.scrollTo(0,document.body.scrollHeight)}
+
+function screenNarrative(q){
+  const sc=SACK[S.state.place],l=S.state.answers[q];
+  $("app").innerHTML=`<div class="place" style="margin:8px 0 14px">${esc(placeName(S.state.place))}<small>Question ${q+1} of 3: you chose ${l}</small></div>
+  <div class="card"><p class="narr">${esc(sc.n[String(q+1)]?.[l]||"You press on.")}</p>
+  <div class="row"><button class="primary" id="next">${q<2?"Continue":"Return to camp"}</button></div></div>`;
+  window.scrollTo(0,0);$("next").onclick=route}
+
+function screenTurnIn(){
+  const st=S.state;
+  $("app").innerHTML=`<h1>Back at the camp</h1>${pastHtml()}
+  <div class="card"><h2>Your plunder</h2>
+  <div class="stats"><div class="stat"><div class="n">${st.collected}</div><div class="l">marks of silver collected</div></div><div class="stat"><div class="n">${st.fama>0?"+":""}${st.fama}</div><div class="l">fama from your choices</div></div></div>
+  <p>The Pact requires plunder to go into the common pot. Venice is repaid first, and it’s repaid in full only if the pot reaches <b>100 marks for every crusader</b>. What isn’t needed for Venice is divided as the Pact says. Whatever you keep, you keep.</p>
+  <label for="amt">How many marks do you turn in? (0 to ${st.collected})</label><input id="amt" type="number" min="0" max="${st.collected}" step="1" inputmode="numeric">
+  <div class="row"><button class="primary" id="sub">Turn in</button></div><div class="err" id="err"></div></div>`;
+  $("sub").onclick=async()=>{const v=$("amt").value.trim();const n=Number(v);
+    if(v===""||!Number.isInteger(n)||n<0||n>st.collected){$("err").textContent=`Enter a whole number from 0 to ${st.collected}.`;return}
+    if(!confirm(`Turn in ${n} of your ${st.collected} marks? This is final.`))return;
+    $("sub").disabled=true;try{S.state=await api({action:"turnin",amount:n});screenDone()}catch(e){$("err").textContent=e.message;$("sub").disabled=false}}}
+
+function screenDone(){
+  const st=S.state;
+  $("app").innerHTML=`<h1>Your sack is recorded</h1><div class="card">
+  <p style="margin-top:0">${esc(CHARS[S.charId])}, Section ${S.sec} · ${esc(placeName(st.place))}</p>
+  <div class="stats"><div class="stat"><div class="n">${st.collected}</div><div class="l">marks collected</div></div><div class="stat"><div class="n">${st.turnedIn}</div><div class="l">marks turned in</div></div></div>
+  <p>Your code. Write it on your plan sheet:</p><div class="code">${esc(st.code)}</div>
+  <p class="note">Your instructor already has your choices; the code is your receipt. The results of the sack will be announced in class.</p></div>
+  ${pastHtml()}`}
+
+if(S.pass&&S.sec&&S.charId)load();else if(S.pass&&S.sec)refreshChars();else screenLogin();
+</script>
+</body>
+</html>

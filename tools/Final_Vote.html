@@ -1,0 +1,340 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Final Pact Vote</title>
+<link href="https://fonts.googleapis.com/css2?family=EB+Garamond:wght@500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#F6F1E7;--card:#FFFDF8;--line:#E0D6C2;--navy:#1F2430;--navy2:#2B3040;--text:#2B3040;--mute:#5E6475;--red:#8C2F39;--redbg:#F6E3E5;--win:#2E6B4A;--winbg:#E4F0E8;--amber:#8A5A12;--amberbg:#FBEFD9;--grey:#8D93A1}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--text);font-family:"IBM Plex Sans",Arial,sans-serif;height:100vh;display:flex;flex-direction:column;overflow:hidden}
+header{display:flex;align-items:center;gap:6px;padding:10px 22px;flex-wrap:wrap;background:var(--navy)}
+.tab{padding:6px 12px;border:1px solid #3A4153;background:var(--navy2);border-radius:6px;font-weight:600;color:#C9CCD6;cursor:pointer;font-size:17px;white-space:nowrap}
+.tab.am{font-size:15px;padding:7px 11px}.tab.am.adopted{background:var(--win);border-color:var(--win);color:#fff}.tab.am.failed{background:var(--red);border-color:var(--red);color:#fff}.tab.am.withdrawn{background:var(--grey);border-color:var(--grey);color:#fff}.tab.am.cur{box-shadow:0 0 0 3px #fff;background:var(--navy2);color:#fff;border-color:#fff}.tab.am.cur.adopted{background:var(--win)}.tab.am.cur.failed{background:var(--red)}.tab.am.cur.withdrawn{background:var(--grey)}
+.tab .st{font-weight:500;font-size:14px;margin-left:6px;opacity:.9}
+.tab.cur{background:var(--red);color:#fff;border-color:var(--red)}
+.tab.done{background:var(--winbg);color:var(--win);border-color:var(--winbg)}
+.tab.fail{background:var(--redbg);color:var(--red);border-color:var(--redbg)}
+.tab.done.cur,.tab.fail.cur{color:#fff;background:var(--red);border-color:var(--red)}
+.tab.done.cur{background:var(--win);border-color:var(--win)}
+.sec{margin-left:auto;font-size:14px;color:#AEB3C2;letter-spacing:.08em;text-transform:uppercase}
+.title{padding:10px 28px 0}
+h1{font-family:"EB Garamond",Georgia,serif;font-weight:600;color:var(--navy);font-size:46px;margin:0;line-height:1.1}
+.sub{font-size:22px;color:var(--mute);margin:6px 0 0}
+.sub b{color:var(--navy);font-weight:600}
+main{flex:1;display:grid;grid-template-columns:1.8fr 1fr;gap:22px;padding:12px 28px 14px;min-height:0}
+main.one{grid-template-columns:1fr}
+.panel{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:16px 20px;overflow:auto}
+.panel h2{margin:0 0 10px;font-size:15px;letter-spacing:.08em;text-transform:uppercase;color:var(--navy);font-weight:600}
+.ok{color:var(--win)}.bad{color:var(--red)}
+.frow{display:flex;align-items:center;gap:14px;padding:10px 0;border-bottom:1px solid var(--line)}
+.frow:last-child{border-bottom:none}
+.fname{flex:none;width:190px;font-size:17px;font-weight:600;letter-spacing:.06em;color:var(--navy)}
+.glyph{font-size:24px;margin-right:6px;font-family:"Segoe UI Symbol","Noto Sans Symbols 2","DejaVu Sans",sans-serif;font-weight:400}
+.hold{display:inline-block;background:var(--red);color:#fff;padding:2px 8px;border-radius:5px;font-size:12px;letter-spacing:.08em;margin-top:4px}
+.members{flex:1;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+.mem{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:6px 8px 6px 14px;border:1px solid var(--line);border-radius:24px;background:#fff;cursor:pointer;font-size:19px;user-select:none;min-width:0}
+.mem .nm{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.mem .stu{font-size:13px;color:var(--mute);margin-left:4px}
+.mem.focus{box-shadow:0 0 0 3px var(--navy)}
+.mem.ro{cursor:default}
+.pill{flex:none;width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:"Segoe UI Symbol","DejaVu Sans",sans-serif;font-weight:600;font-size:22px;background:#ECE6D8;color:var(--mute);border:3px solid transparent}
+.pill.y{background:var(--win);color:#fff}.pill.n{background:var(--red);color:#fff}.pill.a{background:var(--grey);color:#fff}
+.pill.hy{border:3px dashed var(--win);color:var(--win);background:#fff}.pill.hn{border:3px dashed var(--red);color:var(--red);background:#fff}
+.mem.vy{border:2px solid var(--win)}.mem.vn{border:2px solid var(--red)}.mem.va{border:2px solid var(--grey)}
+.mem.sy{border:2px dashed var(--win)}.mem.sn{border:2px dashed var(--red)}
+.count{display:flex;flex-direction:column;gap:6px}
+.cbox{display:flex;align-items:baseline;justify-content:space-between;border-bottom:1px solid var(--line);padding:4px 4px 8px}
+.cbox{border-left:6px solid var(--line);padding-left:14px!important}.cbox .num{font-size:58px;font-weight:600;line-height:1;font-variant-numeric:tabular-nums;color:var(--navy)}
+.cbox .lab{font-family:"EB Garamond",Georgia,serif;font-variant:small-caps;font-size:30px;font-weight:600;letter-spacing:.04em}
+.cbox.y{border-left-color:var(--win)}.cbox.n{border-left-color:var(--red)}.cbox.a{border-left-color:var(--grey)}.cbox.y .lab{color:var(--win)}.cbox.n .lab{color:var(--red)}.cbox.a .lab{color:var(--grey)}
+.checks{font-size:20px;line-height:1.6;margin-top:8px}
+.req{display:grid;grid-template-columns:36px 1fr;row-gap:8px;font-size:20px;align-items:center;margin-top:4px;line-height:1.25}
+.req .ic{display:inline-flex;width:26px;height:26px;border-radius:13px;align-items:center;justify-content:center;color:#fff;font-size:16px;font-weight:600;}.req .ic.ok{background:var(--win)}.req .ic.bad{background:var(--red)}
+.req b{font-weight:600}
+.amlist{border:2px solid var(--amber);background:var(--amberbg);border-radius:10px;padding:10px 14px;margin-bottom:14px;max-height:34vh;overflow:auto}.amlist h2{color:var(--amber)!important}.amitem{font-size:16px;margin-bottom:6px;line-height:1.3;color:var(--navy)}.amitem .ct{font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--amber);font-weight:600;margin-right:4px}.amitem s{color:var(--mute)}.amitem .nw{color:var(--navy);font-weight:600}.amitem .tag{font-size:12px;letter-spacing:.06em;text-transform:uppercase;background:var(--amber);color:#fff;padding:1px 6px;border-radius:4px}
+.ctx{border-radius:8px;padding:9px 14px;margin-bottom:14px;font-size:15px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;text-align:center;color:#fff}
+.ctx.sound{background:var(--amber)}.ctx.ok{background:var(--win)}.ctx.bad{background:var(--red)}.ctx.wd{background:var(--grey)}
+.pact ul{list-style:none;padding:0;margin:0;columns:2;column-gap:36px;font-size:19px;line-height:1.35}
+.pact li{break-inside:avoid;margin:0 0 14px}
+.pact .ct{font-size:14px;letter-spacing:.08em;text-transform:uppercase;color:var(--mute);font-weight:600}
+.pact .opt{font-size:20px;color:var(--navy)}
+.checks .sm{font-size:16px;color:var(--mute)}
+.was{font-size:17px;color:var(--mute);margin-bottom:6px}
+.clock{font-size:96px;margin-bottom:12px;font-weight:600;text-align:center;font-variant-numeric:tabular-nums;color:var(--navy);line-height:1}
+.clock.warn{color:var(--amber)}.clock.zero{color:var(--red)}
+.clocklab{text-align:center;color:var(--mute);font-size:18px;margin:6px 0 14px}
+.rules{font-size:16px;line-height:1.35;padding-left:20px;margin:6px 0}
+.rules li{margin-bottom:6px}
+.need-list{font-size:24px;line-height:1.5;margin:0 0 14px;padding-left:24px;color:var(--red);font-weight:500}
+.change{display:grid;grid-template-columns:1fr 1fr;gap:0;border:2px solid var(--navy);border-radius:10px;overflow:hidden;margin-bottom:14px;background:#fff}
+.change .hd{grid-column:1/3;background:var(--navy);color:#fff;font-size:15px;letter-spacing:.08em;text-transform:uppercase;padding:8px 14px;font-weight:600}
+.change .col{padding:12px 16px}
+.change .col+.col{border-left:2px solid var(--line)}
+.change .lab{font-size:13px;letter-spacing:.08em;text-transform:uppercase;color:var(--mute);margin-bottom:4px;font-weight:600}
+.change .now{font-size:22px;color:var(--mute)}
+.change .new{font-size:22px;color:var(--navy);font-weight:600}
+.stage{font-size:14px;letter-spacing:.08em;text-transform:uppercase;font-weight:600;padding:5px 10px;border-radius:6px;display:inline-block;margin-bottom:10px}
+.stage.sound{background:var(--amberbg);color:var(--amber);border:2px dashed var(--amber)}
+.stage.vote{background:var(--navy);color:#fff}
+.stage.done{background:var(--line);color:var(--navy)}
+.amv{display:flex;flex-direction:column;gap:10px;margin-top:6px}
+.amv label{display:flex;align-items:center;justify-content:space-between;font-family:"EB Garamond",Georgia,serif;font-variant:small-caps;font-size:34px;font-weight:600}
+.amv input{width:110px;font-size:44px;padding:4px;text-align:center;border:2px solid var(--line);border-radius:8px;font-family:"IBM Plex Sans",Arial,sans-serif}
+.result{font-size:30px;font-weight:600;margin-top:12px}
+.pact ol{font-size:20px;line-height:1.45;padding-left:28px;margin:0}
+.pact li{margin-bottom:8px}
+.pact .rid{font-size:17px;color:var(--mute);padding-left:20px;margin-top:2px}
+.pact .amended{background:var(--amberbg);padding:0 4px;border-radius:4px}
+.pact s{color:var(--mute)}
+.overlay{position:fixed;inset:0;background:rgba(31,36,48,.88);display:flex;align-items:center;justify-content:center;z-index:50}
+.overlay .box{background:var(--card);border-radius:14px;padding:40px 54px;text-align:center;max-width:900px}
+.overlay h2{font-family:"EB Garamond",Georgia,serif;font-weight:600;font-size:56px;margin:0 0 10px;color:var(--navy)}
+.overlay p{font-size:24px;color:var(--mute);margin:0 0 20px}
+.btn{padding:9px 16px;border-radius:7px;border:1px solid var(--navy);background:var(--navy);color:#fff;font-weight:600;cursor:pointer;font-size:16px;font-family:inherit}
+.hidden{display:none!important}
+.hint{font-size:14px;color:var(--mute);margin-top:8px}
+#ctl{background:var(--navy);color:#C9CCD6;padding:8px 16px;display:flex;flex-direction:column;gap:6px;font-size:14px}
+#ctl .row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+#ctl select,#ctl input{font-size:14px;padding:4px 6px;border-radius:5px;border:1px solid #3A4153;background:#fff;font-family:inherit}
+#ctl button{font-size:14px;padding:5px 10px;border-radius:5px;border:1px solid #3A4153;background:var(--navy2);color:#E6E8EE;cursor:pointer;font-family:inherit}
+#ctl button.go{background:var(--win);border-color:var(--win);color:#fff;font-weight:600}
+#ctl button.warn{background:var(--red);border-color:var(--red);color:#fff;font-weight:600}
+#ctl .chip{padding:3px 9px;border-radius:12px;background:var(--navy2);border:1px solid #3A4153;cursor:pointer;color:#E6E8EE}
+#ctl .chip.abs{background:transparent;color:#7A8092;text-decoration:line-through}
+#ctl .lbl{color:#AEB3C2;letter-spacing:.06em;text-transform:uppercase;font-size:12px}
+#ctl .msg{color:#F3C9CE}
+#ctl .sep{width:1px;height:20px;background:#3A4153;margin:0 4px}
+</style>
+</head>
+<body>
+<header><div id="tabs" style="display:flex;gap:6px;flex-wrap:wrap"></div><span class="sec" id="secLab"></span></header>
+<div class="title"><h1 id="h1"></h1><p class="sub" id="sub"></p></div>
+<main id="main"></main>
+<div id="ctl">
+  <div class="row">
+    <span class="lbl">Section</span><select id="secSel"><option>02</option><option>12</option></select>
+    <button id="bLoad">⇧ Load Pact CSV</button><input type="file" id="fLoad" accept=".csv" class="hidden">
+    <button id="bAtt">Attendance ▸</button>
+    <span class="lbl">Parley min</span><input id="parMin" type="number" min="1" max="15" style="width:56px">
+    <span class="sep"></span><span id="acts" style="display:flex;gap:8px;align-items:center"></span>
+    <span class="sep"></span><button id="bRecord">⇩ Record CSV</button><button id="bResetVotes">Reset this section</button>
+  </div>
+  <div class="row hidden" id="attRow">
+    <span class="lbl">Present</span><span id="chips" style="display:flex;gap:5px;flex-wrap:wrap"></span>
+    <span class="sep"></span><span class="lbl">Indeterminates</span><span id="indet" style="display:flex;gap:8px;flex-wrap:wrap"></span>
+  </div>
+  <div class="row hidden" id="amRow">
+    <span class="lbl">New amendment</span>
+    <select id="amClause"></select><select id="amAct"></select><select id="amChoice"></select>
+    <select id="amBy"></select><button id="bAddAm">+ Amendment</button><span class="msg" id="amMsg"></span>
+  </div>
+  <div class="row"><span class="hint" style="color:#8D93A1;margin:0">Click a name: aye → nay → abstain → clear · Roll call: Y / N / A, ←/→ to move · Space: parley clock · H hide bar · F fullscreen</span></div>
+</div>
+<div id="overlay" class="overlay hidden"><div class="box"><h2 id="ovH"></h2><p id="ovP"></p><button class="btn" id="ovB">Continue</button></div></div>
+<script>
+const ROSTER={
+ "02":[["Ethan","Boniface"],["Brendan","Oberto"],["Owen","Dandolo"],["Stella","Falier"],["Lucinda","Geoffrey"],["Emma","Baldwin"],["Paddy","Louis"],["Najla","Nivelon"],["Carlos","John"],["Montrell","Martin"],["Alice","Robert"],["Aniela","Anna"],["Neha","Branas"]],
+ "12":[["Cameron","Boniface"],["Shrihith","Oberto"],["Mark","Berthold"],["Ashe","Dandolo"],["Dary","Falier"],["Sammy","Baldwin"],["Olivia","Louis"],["Liam","Geoffrey"],["Zoë","Nivelon"],["Lily","John"],["Molly","Martin"],["Mya","Robert"],["Jaclyn","Anna"],["Ava","Branas"]]};
+const FAC_OF={Boniface:"imp",Oberto:"imp",Berthold:"imp",Dandolo:"ven",Falier:"ven",Barbo:"ven",Geoffrey:"nf",Baldwin:"nf",Louis:"nf",Nivelon:"cle",John:"cle",Martin:"cle",Robert:"ind",Anna:"ind",Branas:"ind"};
+const T="︎";
+const FACS=[["imp","Imperials","♛"+T],["ven","Venetians","⚓"+T],["nf","N. French","⚜"+T],["cle","Clerics","☩"+T],["ind","Unaffiliated","⚖"+T]];
+const FN=Object.fromEntries(FACS.map(f=>[f[0],f]));
+const WORD={y:"✓",n:"✗",a:"–"};
+const KEY="fv1";
+let A={sec:"02",d:{},att:false};
+try{const s=localStorage.getItem(KEY);if(s)A=Object.assign(A,JSON.parse(s));}catch(e){}
+function save(){try{localStorage.setItem(KEY,JSON.stringify(A));}catch(e){}}
+function D(sec){sec=sec||A.sec;if(!A.d[sec])A.d[sec]={tab:"pact",absent:{},fac:{},pact:null,v1:{},v1log:null,v2:{},v2log:null,ams:[],parMin:5,parLeft:300,focus:0};return A.d[sec];}
+const $=id=>document.getElementById(id);
+const esc=t=>String(t??"").replace(/[&<>"]/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[m]));
+const fmt=s=>{s=Math.max(0,Math.round(s));return Math.floor(s/60)+":"+String(s%60).padStart(2,"0");};
+const mk=b=>b?'<span class="ok">✓</span>':'<span class="bad">✗</span>';
+let timer=null;
+function people(){const d=D();return ROSTER[A.sec].map(([stu,ch])=>({stu,ch,fac:(FAC_OF[ch]=="ind"&&d.fac[ch])||FAC_OF[ch]})).filter(p=>!d.absent[p.ch]);}
+function count(votes){const P=people();let y=0,n=0,a=0,u=0;P.forEach(p=>{const v=votes[p.ch];if(v=="y")y++;else if(v=="n")n++;else if(v=="a")a++;else u++;});
+  const facs=FACS.map(f=>f[0]).filter(f=>P.some(p=>p.fac==f));const facOk={};facs.forEach(f=>facOk[f]=P.some(p=>p.fac==f&&votes[p.ch]=="y"));
+  const voting=y+n,need=Math.floor(voting/2)+1,maj=y>n,allF=facs.every(f=>facOk[f]);return {y,n,a,u,voting,need,maj,facs,facOk,allF,pass:maj&&allF};}
+/* ---------- Pact from CSV ---------- */
+function parseCSV(s){s=s.replace(/^﻿/,"");const rows=[];let row=[],f="",q=false;
+  for(let i=0;i<s.length;i++){const ch=s[i];if(q){if(ch=='"'){if(s[i+1]=='"'){f+='"';i++;}else q=false;}else f+=ch;}
+  else if(ch=='"')q=true;else if(ch==","){row.push(f);f="";}else if(ch=="\n"||ch=="\r"){if(ch=="\r"&&s[i+1]=="\n")i++;row.push(f);rows.push(row);row=[];f="";}else f+=ch;}
+  if(f!==""||row.length){row.push(f);rows.push(row);}return rows.filter(r=>r.length>1);}
+function loadPact(text){const R=parseCSV(text),H=R[0];const g=(r,n)=>r[H.indexOf(n)]??"";
+  if(H.indexOf("section")<0||H.indexOf("clause")<0)throw new Error("not a March Pact CSV record");
+  const out={};
+  R.slice(1).forEach(r=>{const sec=g(r,"section"),cl=g(r,"clause");if(!sec)return;out[sec]=out[sec]||{};
+    const c=out[sec][cl]=out[sec][cl]||{n:cl,title:g(r,"clause_title"),opts:[],riders:[],items:[],result:g(r,"clause_result")};
+    const it=g(r,"item"),st=g(r,"vote_status");
+    if(it=="option")c.opts.push({l:g(r,"label"),t:g(r,"text"),dropped:g(r,"support").startsWith("dropped"),win:st=="adopted"});
+    else if(it=="rider")c.riders.push({t:g(r,"text"),st});
+    else if(it=="consent")c.items.push({t:g(r,"text"),label:g(r,"label"),st});});
+  let loaded=[];Object.keys(out).forEach(sec=>{D(sec).pact=out[sec];loaded.push(sec);});return loaded;}
+function curPact(){const d=D();if(!d.pact)return null;const P=JSON.parse(JSON.stringify(d.pact));
+  d.ams.filter(a=>a.adopted).forEach(a=>{const c=P[a.clause];if(!c)return;
+    if(a.act=="opt"){c.opts.forEach(o=>o.win=o.l==a.choice);c.amended=true;c.result=a.choice;}
+    else if(a.act=="strike"){const r=c.riders[a.choice];if(r)r.st="struck";}
+    else if(a.act=="restore"){const r=c.riders[a.choice];if(r)r.st="restored";}});return P;}
+function clauseList(P){return Object.values(P).filter(c=>c.n!="CI").sort((a,b)=>(+a.n)-(+b.n));}
+function winText(c){const w=c.opts.find(o=>o.win);if(w)return `${w.l}. ${w.t}`;if(c.n=="8"&&c.result=="default")return "A. The pope is head of the Church (papal supremacy)";if(c.result=="default")return "historical default";return "";}
+/* ---------- tabs ---------- */
+const AST={open:"Proposed",vote:"Voting",withdrawn:"Withdrawn",done:""};
+function amShort(a,i){const base=a.act=="opt"?`Cl. ${a.clause} → ${a.choice}`:a.act=="strike"?`Cl. ${a.clause} − rider`:`Cl. ${a.clause} + rider`;return `Am. ${i+1} · ${base}`;}
+function amStatus(a){return a.status=="done"?(a.adopted?"Adopted":"Failed"):AST[a.status];}
+function tabs(){const d=D();const L=[["pact","The Pact",""]];
+  const vl=(log,lab)=>log?[lab,`${log.pass?"passed":"failed"} ${log.y}–${log.n}`,log.pass?"done":"fail"]:[lab,"",""];
+  const v1=vl(d.v1log,"First Vote");L.push(["v1",v1[0],v1[1],v1[2]]);
+  if(d.v1log&&!d.v1log.pass){L.push(["parley","Parley",""]);
+    d.ams.forEach((a,i)=>{const s=amStatus(a);L.push(["am"+i,amShort(a,i),"","am "+(s=="Adopted"?"adopted":s=="Failed"?"failed":s=="Withdrawn"?"withdrawn":"")]);});
+    const v2=vl(d.v2log,"Second Vote");L.push(["v2",v2[0],v2[1],v2[2]]);}
+  return L;}
+function render(){const d=D();$("secSel").value=A.sec;$("secLab").textContent="Section "+A.sec;$("parMin").value=d.parMin;
+  const T=tabs();if(!T.some(t=>t[0]==d.tab))d.tab="pact";
+  $("tabs").innerHTML=T.map(([k,l,st,cls])=>`<div class="tab ${d.tab==k?"cur":""} ${cls||""}" data-tab="${k}">${esc(l)}${st?`<span class="st">${esc(st)}</span>`:""}</div>`).join("");
+  renderCtl();
+  if(d.tab=="pact")renderPact();else if(d.tab=="v1")renderVote(1);else if(d.tab=="v2")renderVote(2);else if(d.tab=="parley")renderParley();else if(d.tab.startsWith("am"))renderAm(+d.tab.slice(2));
+  save();}
+function renderPact(){const d=D(),P=curPact();$("h1").textContent="The March Pact";$("main").className="one";
+  if(!P){$("sub").innerHTML="Load the March Pact CSV record from the control bar to show the Pact.";$("main").innerHTML=`<section class="panel"><p class="hint" style="font-size:18px">Use ⇧ Load Pact CSV: the file saved from the March Pact display (⇩ CSV record).</p></section>`;return;}
+  $("sub").innerHTML=d.ams.some(a=>a.adopted)?"<b>As amended.</b> Highlighted lines were changed by amendment.":"As it stands after the debate.";
+  let h=`<section class="panel pact"><ul>`;
+  clauseList(P).forEach(c=>{const rs=c.riders.filter(r=>r.st=="adopted"||r.st=="struck"||r.st=="restored");
+    h+=`<li><div class="ct">Clause ${esc(c.n)} · ${esc(c.title)}</div><div class="opt ${c.amended?"amended":""}">${esc(winText(c))||"<i>not yet decided</i>"}</div>`+
+      (rs.length?`<div class="rid">${rs.map(r=>r.st=="struck"?`<s>Rider: ${esc(r.t)}</s> <span class="amended">struck</span>`:r.st=="restored"?`<span class="amended">Rider (restored): ${esc(r.t)}</span>`:`Rider: ${esc(r.t)}`).join("<br>")}</div>`:"")+`</li>`;});
+  const ci=P["CI"];if(ci)h+=`<li><div class="ct">Consent items</div><div class="opt">Papal supremacy; protection of non-combatants ${ci.items.some(i=>i.st=="adopted")?"(adopted)":""}</div></li>`;
+  $("main").innerHTML=h+`</ul></section>`;}
+function facRows(votes,opts){opts=opts||{};const P=people(),d=D();const pv={...votes};Object.entries(opts.sw||{}).forEach(([ch,nv])=>pv[ch]=nv);const c=count(pv);
+  return FACS.filter(f=>P.some(p=>p.fac==f[0])).map(([k,name,gl])=>{const ms=P.filter(p=>p.fac==k);
+    return `<div class="frow"><div class="fname"><span class="glyph">${gl}</span>${name.toUpperCase()}${c.facOk[k]?"":'<br><span class="hold">HOLDOUT</span>'}</div><div class="members">`+
+    ms.map(p=>{const i=P.indexOf(p);const v=votes[p.ch]||"";let cls=v,w=WORD[v]||"";
+      let mc=v?"v"+v:"";if(opts.sw&&opts.sw[p.ch]){const nv=opts.sw[p.ch];cls="h"+nv;w=WORD[nv];mc="s"+nv;}
+      return `<div class="mem ${mc} ${opts.focus&&d.focus==i?"focus":""} ${opts.ro?"ro":""}" data-m="${esc(p.ch)}" data-i="${i}"><span class="nm">${esc(p.ch)}<span class="stu">${esc(p.stu)}</span></span><span class="pill ${cls}">${w}</span></div>`;}).join("")+
+    `</div></div>`;}).join("");}
+function facAgree(c){const h=c.facs.filter(f=>!c.facOk[f]);return h.length?`${h.length} holdout${h.length>1?"s":""} (${h.map(f=>FN[f][1]).join(", ")})`:"all factions";}
+function reqBox(c){return `<h2 style="margin-top:16px">Requirements</h2><div class="req"><span class="ic ${c.maj?"ok":"bad"}">${c.maj?"✓":"✗"}</span><span><b>Majority:</b> ${c.voting?`needs ${c.need} of ${c.voting} voting`:"no votes yet"}</span><span class="ic ${c.allF?"ok":"bad"}">${c.allF?"✓":"✗"}</span><span><b>Faction agreement:</b> ${facAgree(c)}</span></div>${c.u?`<div class="checks"><span class="sm">Not yet marked: ${c.u} (counted as abstaining when logged)</span></div>`:""}`;}
+function countBox(c,title,extra,pre){return `<section class="panel">${pre||""}<h2>${title}</h2>${extra||""}<div class="count"><div class="cbox y"><span class="lab">Aye</span><span class="num">${c.y}</span></div><div class="cbox n"><span class="lab">Nay</span><span class="num">${c.n}</span></div><div class="cbox a"><span class="lab">Abstain</span><span class="num">${c.a}</span></div></div>${reqBox(c)}</section>`;}
+function countBoxOld(c,title,extra){return `<section class="panel"><h2>${title}</h2>${extra||""}<div class="count"><div class="cbox y"><span class="lab">Aye</span><span class="num">${c.y}</span></div><div class="cbox n"><span class="lab">Nay</span><span class="num">${c.n}</span></div><div class="cbox a"><span class="lab">Abstain</span><span class="num">${c.a}</span></div></div>
+  <div class="checks">${mk(c.maj)} Majority: ${c.voting?`needs ${c.need} of ${c.voting} voting`:"no votes yet"}<br>${mk(c.allF)} An aye from every faction${c.u?`<br><span class="sm">Not yet marked: ${c.u} (they count as abstaining when logged)</span>`:""}</div></section>`;}
+function renderVote(n){const d=D(),votes=n==1?d.v1:d.v2;
+  $("h1").textContent=n==1?"The final Pact sits before you. Do you lend your support?":"The Pact as amended. Do you lend your support?";
+  $("sub").innerHTML="To pass: <b>a majority of those voting</b> (abstentions don’t count; a tie fails), and <b>at least one aye from every faction</b>.";
+  $("main").className="";const c=count(votes);
+  let left=`<section class="panel">${facRows(votes,{focus:true})}`;
+  let pre="";if(n==2){const ad=d.ams.filter(a=>a.adopted);pre=`<div class="amlist"><h2>Changed since the first vote</h2>${ad.length?ad.map(a=>{const was=(a.old||"").split(".")[0];return `<div class="amitem"><span class="ct">Clause ${esc(a.clause)}${a.act=="opt"?` · ${esc(was)} → ${esc(a.choice)}`:a.act=="strike"?" · rider struck":" · rider restored"}</span> ${a.act=="opt"?esc(a.new.replace(/^[A-Z]\.\s*/,"")):esc((a.act=="strike"?a.old:a.new).replace(/^Rider:\s*/,""))}</div>`;}).join(""):`<div class="hint" style="font-size:16px">No amendments were adopted.</div>`}</div>`;}
+  $("main").innerHTML=left+`</section>`+countBox(c,"The count","",pre);}
+function renderParley(){const d=D(),c=count(d.v1);$("h1").textContent="Parley";$("sub").innerHTML="The Pact failed. Name your price.";
+  const needs=[];if(!c.maj){const gap=c.n-c.y+1;needs.push(`A majority needs ${gap} more vote${gap>1?"s":""} to move from nay to aye (or from nay to abstain)`);}
+  c.facs.filter(f=>!c.facOk[f]).forEach(f=>needs.push(`${FN[f][1]} need at least one aye`));
+  const left=d.parLeft;$("main").className="";
+  $("main").innerHTML=`<section class="panel"><h2>To pass</h2><ul class="need-list">${needs.map(x=>`<li>${x}</li>`).join("")}</ul><h2>How the council voted (${c.y}–${c.n}${c.a?", "+c.a+" abstaining":""})</h2>${facRows(d.v1,{ro:true})}</section>
+  <section class="panel"><h2>Parley clock</h2><div class="clock ${left<=0?"zero":left<=60?"warn":""}">${fmt(left)}</div>
+  <h2>Amendment rules</h2><ol class="rules"><li>Each faction may propose one amendment, made by someone who voted nay or abstained. A holdout faction’s amendment goes first.</li>
+  <li>Each amendment does one thing: changes one clause to another option that was voted on, strikes a rider that passed, or restores a rider that failed.</li>
+  <li>A withdrawn amendment still uses up that faction’s turn.</li><li>Before any vote, a show of hands: who would change their Pact vote if this passed? (This is not a vote.) The proposer then withdraws the amendment or brings it to a vote. A majority of those voting adopts it; a tie defeats it. No <i>fama</i>.</li>
+  <li>Then the second vote. If it fails, the historical Pact is imposed and everyone loses 2 <i>fama</i>.</li></ol></section>`;}
+function projected(a){const d=D(),v={...d.v1};Object.entries(a.sw||{}).forEach(([ch,nv])=>v[ch]=nv);return v;}
+function renderAm(i){const d=D(),a=d.ams[i];$("main").className="";
+  $("h1").textContent=`Amendment ${i+1}`;
+  $("sub").innerHTML=(a.by?`Proposed by ${esc(a.by)} · `:"")+(a.fac?`<span class="glyph">${FN[a.fac][2]}</span>${FN[a.fac][1]} · `:"")+`<b>${esc(amStatus(a))}</b>`;
+  const c0=count(d.v1),c1=count(projected(a));
+  const left=`<section class="panel"><div class="change"><div class="hd">${esc(a.head)}</div><div class="col"><div class="lab">Now</div><div class="now">${esc(a.old)}</div></div><div class="col"><div class="lab">If amended</div><div class="new">${esc(a.new)}</div></div></div>${facRows(d.v1,{sw:a.sw,ro:a.status!="open"})}</section>`;
+  const was=`<div class="was">First vote: failed ${c0.y}–${c0.n}${c0.a?", "+c0.a+" abstaining":""}</div>`;
+  let right;
+  if(a.status=="vote")right=`<section class="panel"><h2>Vote on the amendment</h2><div class="amv"><label>Aye <input id="amY" inputmode="numeric" value="${a.yes??""}"></label><label>Nay <input id="amN" inputmode="numeric" value="${a.no??""}"></label></div><div class="checks"><span class="sm">A majority of those voting adopts it; a tie defeats it.</span></div></section>`;
+  else{const ctx=a.status=="open"?`<div class="ctx sound">Sounding out vote changes</div>`:a.status=="withdrawn"?`<div class="ctx wd">Withdrawn</div>`:a.adopted?`<div class="ctx ok">Adopted ${a.yes}–${a.no}</div>`:`<div class="ctx bad">Failed ${a.yes}–${a.no}</div>`;
+    right=countBox(c1,"If adopted",was,ctx);}
+  $("main").innerHTML=left+right;}
+/* ---------- control bar ---------- */
+function renderCtl(){const d=D();
+  $("attRow").classList.toggle("hidden",!A.att);$("bAtt").textContent=A.att?"Attendance ▾":"Attendance ▸";
+  $("chips").innerHTML=ROSTER[A.sec].map(([stu,ch])=>`<span class="chip ${d.absent[ch]?"abs":""}" data-chip="${esc(ch)}">${esc(stu)}</span>`).join("");
+  $("indet").innerHTML=ROSTER[A.sec].filter(([s,ch])=>FAC_OF[ch]=="ind").map(([stu,ch])=>`<label>${esc(ch)} <select data-ind="${esc(ch)}">${[["","Unaffiliated"],...FACS.slice(0,4).map(f=>[f[0],f[1]])].map(([k,l])=>`<option value="${k}" ${(d.fac[ch]||"")==k?"selected":""}>${l}</option>`).join("")}</select></label>`).join("");
+  // context actions
+  let acts="";const tb=d.tab;
+  if(tb=="v1"||tb=="v2")acts=`<button class="go" data-act="log${tb.slice(1)}">Log vote</button>`;
+  else if(tb.startsWith("am")){const a=d.ams[+tb.slice(2)];
+    if(a.status=="open")acts=`<button class="go" data-act="tovote">Bring to a vote</button><button class="warn" data-act="withdraw">Withdraw</button>`;
+    else if(a.status=="vote")acts=`<button class="go" data-act="amrec">Record result</button><button data-act="tosound">◂ Back to sounding</button>`;
+    else acts=`<button data-act="reopen">◂ Reopen</button>`;}
+  else if(tb=="parley")acts=`<button data-act="clock">${timer?"❚❚ Pause":"▶ Start"} parley clock</button><button data-act="resetclock">Reset clock</button>`;
+  $("acts").innerHTML=acts||'<span class="lbl">—</span>';
+  const show=d.v1log&&!d.v1log.pass;$("amRow").classList.toggle("hidden",!show);if(!show)return;
+  const P=curPact();if(!P){$("amClause").innerHTML="<option>Load the Pact CSV first</option>";return;}
+  const cl=clauseList(P);const cv=$("amClause").value;
+  $("amClause").innerHTML=`<option value="">Clause…</option>`+cl.map(c=>`<option value="${esc(c.n)}">${esc(c.n)}. ${esc(c.title)}</option>`).join("");
+  if(cl.some(c=>c.n==cv))$("amClause").value=cv;fillAct();
+  const bv=$("amBy").value;$("amBy").innerHTML=`<option value="">Proposed by…</option>`+people().map(p=>`<option value="${esc(p.ch)}">${esc(p.ch)} (${esc(p.stu)})</option>`).join("");$("amBy").value=bv;}
+function fillAct(){const P=curPact(),c=P&&P[$("amClause").value];const av=$("amAct").value;
+  if(!c){$("amAct").innerHTML="";$("amChoice").innerHTML="";return;}
+  const acts=[];if(c.opts.some(o=>!o.dropped&&!o.win))acts.push(["opt","Change the option"]);
+  if(c.riders.some(r=>r.st=="adopted"))acts.push(["strike","Strike a rider"]);if(c.riders.some(r=>r.st=="failed"))acts.push(["restore","Restore a failed rider"]);
+  $("amAct").innerHTML=acts.length?acts.map(([k,l])=>`<option value="${k}">${l}</option>`).join(""):`<option value="">Nothing to amend</option>`;
+  if(acts.some(x=>x[0]==av))$("amAct").value=av;fillChoice();}
+function fillChoice(){const P=curPact(),c=P&&P[$("amClause").value],act=$("amAct").value,cv=$("amChoice").value;if(!c||!act){$("amChoice").innerHTML="";return;}
+  if(act=="opt")$("amChoice").innerHTML=c.opts.filter(o=>!o.dropped&&!o.win).map(o=>`<option value="${esc(o.l)}">${esc(o.l)}. ${esc(o.t.slice(0,60))}</option>`).join("");
+  else{const want=act=="strike"?"adopted":"failed";$("amChoice").innerHTML=c.riders.map((r,i)=>[r,i]).filter(([r])=>r.st==want).map(([r,i])=>`<option value="${i}">${esc(r.t.slice(0,70))}</option>`).join("");}
+  if([...$("amChoice").options].some(o=>o.value==cv))$("amChoice").value=cv;}
+/* ---------- events ---------- */
+document.addEventListener("click",e=>{const d=D();const t=e.target.closest("[data-tab],[data-m],[data-act],[data-chip]");if(!t)return;
+  if(t.dataset.tab){d.tab=t.dataset.tab;stop();render();return;}
+  if(t.dataset.chip!==undefined){const ch=t.dataset.chip;d.absent[ch]=!d.absent[ch];render();return;}
+  if(t.dataset.m!==undefined){if(t.classList.contains("ro"))return;const ch=t.dataset.m;
+    if(d.tab=="v1"||d.tab=="v2"){const v=d.tab=="v1"?d.v1:d.v2;v[ch]={"":"y",y:"n",n:"a",a:""}[v[ch]||""];if(!v[ch])delete v[ch];d.focus=+t.dataset.i;render();}
+    else if(d.tab.startsWith("am")){const a=d.ams[+d.tab.slice(2)];if(a.status!="open")return;const cur=d.v1[ch]||"a";a.sw=a.sw||{};
+      if(a.sw[ch]){if(cur=="a"&&a.sw[ch]=="y")a.sw[ch]="n";else delete a.sw[ch];}else a.sw[ch]=cur=="y"?"n":"y";render();}
+    return;}
+  const act=t.dataset.act,a=d.tab.startsWith("am")?d.ams[+d.tab.slice(2)]:null;
+  if(act=="log1"||act=="log2"){const n=act=="log1"?1:2,v=n==1?d.v1:d.v2;people().forEach(p=>{if(!v[p.ch])v[p.ch]="a";});const c=count(v);
+    const log={y:c.y,n:c.n,a:c.a,pass:c.pass,maj:c.maj,allF:c.allF,at:new Date().toLocaleString()};if(n==1)d.v1log=log;else d.v2log=log;
+    if(n==1&&!c.pass&&!Object.keys(d.v2).length)d.v2={...d.v1};
+    if(c.pass)showOv(n==1?"The March Pact is ratified.":"The March Pact is ratified as amended.",`${c.y} aye, ${c.n} nay${c.a?", "+c.a+" abstaining":""}. May God judge us by it.`);
+    else if(n==1){d.parLeft=d.parMin*60;d.tab="parley";const why=[!c.maj?"no majority":"",!c.allF?"no faction agreement, "+facAgree(c):""].filter(Boolean).join(" and ");showOv("The Pact fails.",`${c.y} aye, ${c.n} nay: ${why}. The council will parley.`);}
+    else showOv("The council cannot agree.","The historical Pact is imposed, and every one of us loses 2 <i>fama</i>.");
+    render();}
+  else if(act=="tovote"){a.status="vote";render();}
+  else if(act=="tosound"||act=="reopen"){a.status="open";a.adopted=false;render();}
+  else if(act=="withdraw"){a.status="withdrawn";a.adopted=false;render();}
+  else if(act=="amrec"){const y=parseInt($("amY").value),n=parseInt($("amN").value);if(isNaN(y)||isNaN(n))return;a.yes=y;a.no=n;a.adopted=y>n;a.status="done";render();}
+  else if(act=="clock")toggleClock();
+  else if(act=="resetclock"){stop();d.parLeft=d.parMin*60;render();}
+});
+document.addEventListener("input",e=>{if(e.target.id=="amY"||e.target.id=="amN"){const d=D(),a=d.ams[+d.tab.slice(2)];a[e.target.id=="amY"?"yes":"no"]=e.target.value;save();}});
+document.addEventListener("change",e=>{const d=D();
+  if(e.target.dataset.ind!==undefined){const ch=e.target.dataset.ind;if(e.target.value)d.fac[ch]=e.target.value;else delete d.fac[ch];render();}
+  if(e.target.id=="amClause")fillAct();if(e.target.id=="amAct")fillChoice();
+  if(e.target.id=="parMin"){const v=parseInt(e.target.value);if(v>0){d.parMin=v;d.parLeft=v*60;render();}}
+  if(e.target.id=="secSel"){stop();A.sec=e.target.value;render();}});
+$("bAtt").onclick=()=>{A.att=!A.att;render();};
+$("bLoad").onclick=()=>$("fLoad").click();
+$("fLoad").onchange=e=>{const f=e.target.files[0];if(!f)return;const r=new FileReader();r.onload=()=>{try{const L=loadPact(r.result);$("bLoad").textContent="✓ Loaded · Section "+L.join(" & ");}catch(err){$("bLoad").textContent="✗ "+err.message;}setTimeout(()=>$("bLoad").textContent="⇧ Load Pact CSV",5000);e.target.value="";render();};r.readAsText(f);};
+$("bAddAm").onclick=()=>{const d=D(),P=curPact(),msg=m=>{$("amMsg").textContent=m;setTimeout(()=>$("amMsg").textContent="",4000);};
+  const c=P&&P[$("amClause").value],act=$("amAct").value,ch=$("amChoice").value,byCh=$("amBy").value;if(!c||!act||ch==="")return msg("Choose a clause, an action and a choice.");
+  if(!byCh)return msg("Choose who is proposing it.");const pp=people().find(p=>p.ch==byCh);const fac=pp?pp.fac:FAC_OF[byCh];
+  if(d.ams.some(x=>x.fac==fac))return msg(`${FN[fac][1]} have already proposed an amendment.`);
+  const a={clause:c.n,act,choice:act=="opt"?ch:+ch,by:pp?`${pp.ch} (${pp.stu})`:byCh,fac,status:"open",sw:{}};
+  if(act=="opt"){const o=c.opts.find(x=>x.l==ch);a.head=`Clause ${c.n}, ${c.title}: change the option`;a.old=winText(c);a.new=`${o.l}. ${o.t}`;}
+  else{const r=c.riders[+ch];a.head=`Clause ${c.n}, ${c.title}: ${act=="strike"?"strike a rider":"restore a failed rider"}`;a.old=act=="strike"?"Rider: "+r.t:"(no such rider)";a.new=act=="strike"?"(rider struck)":"Rider: "+r.t;}
+  d.ams.push(a);d.tab="am"+(d.ams.length-1);render();};
+let armed=0;$("bResetVotes").onclick=()=>{if(Date.now()-armed>3000){armed=Date.now();$("bResetVotes").textContent="Click again to reset";setTimeout(()=>$("bResetVotes").textContent="Reset this section",3000);return;}armed=0;const d=D();Object.assign(d,{tab:"pact",v1:{},v1log:null,v2:{},v2log:null,ams:[],parLeft:d.parMin*60});stop();render();};
+$("bRecord").onclick=()=>{const q=v=>{v=v==null?"":String(v);return /[",\n]/.test(v)?'"'+v.replace(/"/g,'""')+'"':v;};const rows=[["section","stage","character","student","faction","vote_or_detail"]];
+  ["02","12"].forEach(sec=>{const d=A.d[sec];if(!d)return;const fac=ch=>(FAC_OF[ch]=="ind"&&d.fac[ch])||FAC_OF[ch];
+    [["first vote",d.v1,d.v1log],["second vote",d.v2,d.v2log]].forEach(([st,v,log])=>{if(!log)return;ROSTER[sec].forEach(([stu,ch])=>rows.push([sec,st,ch,stu,FN[fac(ch)][1],d.absent[ch]?"absent":({y:"aye",n:"nay",a:"abstain"}[v[ch]]||"abstain")]));rows.push([sec,st+" result","","","",`${log.pass?"passed":"failed"} ${log.y}-${log.n}, ${log.a} abstaining`]);});
+    d.ams.forEach((a,i)=>rows.push([sec,"amendment "+(i+1),"",a.by,"",`${amShort(a,i)} · ${amStatus(a)} ${a.yes??""}-${a.no??""}`]));});
+  const b=new Blob(["﻿"+rows.map(r=>r.map(q).join(",")).join("\r\n")],{type:"text/csv"});const x=document.createElement("a");x.href=URL.createObjectURL(b);x.download="Final_Vote_Record.csv";document.body.appendChild(x);x.click();x.remove();};
+function showOv(h,p){$("ovH").textContent=h;$("ovP").innerHTML=p;$("overlay").classList.remove("hidden");}
+$("ovB").onclick=()=>$("overlay").classList.add("hidden");
+function stop(){clearInterval(timer);timer=null;}
+function toggleClock(){const d=D();if(d.tab!="parley")return;if(timer){stop();render();return;}timer=setInterval(()=>{d.parLeft--;if(d.parLeft<=0){d.parLeft=0;stop();}render();},1000);render();}
+document.addEventListener("keydown",e=>{const el=e.target;if(el.tagName=="INPUT"||el.tagName=="SELECT")return;const d=D();
+  if(e.key=="Escape"){$("overlay").classList.add("hidden");return;}
+  if(e.key==" "){e.preventDefault();toggleClock();return;}
+  if(e.key=="h"||e.key=="H"){$("ctl").classList.toggle("hidden");return;}
+  if(e.key=="f"||e.key=="F"){document.fullscreenElement?document.exitFullscreen():document.documentElement.requestFullscreen().catch(()=>{});return;}
+  if(d.tab=="v1"||d.tab=="v2"){const P=people(),v=d.tab=="v1"?d.v1:d.v2;const k=e.key.toLowerCase();
+    if(k.length==1&&"yna".includes(k)&&P[d.focus]){v[P[d.focus].ch]=k;d.focus=Math.min(P.length-1,d.focus+1);render();}
+    else if(e.key=="ArrowRight"){d.focus=Math.min(P.length-1,d.focus+1);render();}else if(e.key=="ArrowLeft"){d.focus=Math.max(0,d.focus-1);render();}}});
+render();
+</script>
+</body>
+</html>

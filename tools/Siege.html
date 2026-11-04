@@ -1,0 +1,449 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>The Siege of Constantinople</title>
+<link href="https://fonts.googleapis.com/css2?family=EB+Garamond:wght@500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<style>
+:root{--bg:#F6F1E7;--card:#FFFDF8;--line:#E0D6C2;--navy:#1F2430;--navy2:#2B3040;--text:#2B3040;--mute:#5E6475;--red:#8C2F39;--redbg:#F6E3E5;--win:#2E6B4A;--winbg:#E4F0E8;--amber:#8A5A12;--amberbg:#FBEFD9;--grey:#8D93A1}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--text);font-family:"IBM Plex Sans",Arial,sans-serif;height:100vh;display:flex;flex-direction:column;overflow:hidden}
+header{display:flex;align-items:center;gap:6px;padding:10px 22px;flex-wrap:wrap;background:var(--navy)}
+.tab{padding:6px 14px;border:1px solid #3A4153;background:var(--navy2);border-radius:6px;font-weight:600;color:#C9CCD6;cursor:pointer;font-size:17px;white-space:nowrap}
+.tab .st{font-weight:500;font-size:14px;margin-left:6px;opacity:.9}
+.tab.off{opacity:.45}
+.tab.cur{background:var(--red);color:#fff;border-color:var(--red)}
+.tab.done{background:var(--winbg);color:var(--win);border-color:var(--winbg)}
+.tab.fail{background:var(--redbg);color:var(--red);border-color:var(--redbg)}
+.tab.done.cur{background:var(--win);color:#fff;border-color:var(--win)}
+.tab.fail.cur{background:var(--red);color:#fff;border-color:var(--red)}
+.sec{margin-left:auto;font-size:14px;color:#AEB3C2;letter-spacing:.08em;text-transform:uppercase}
+.title{padding:10px 28px 0}
+h1{font-family:"EB Garamond",Georgia,serif;font-weight:600;color:var(--navy);font-size:46px;margin:0;line-height:1.1}
+.sub{font-size:21px;color:var(--mute);margin:6px 0 0}
+.sub b{color:var(--navy);font-weight:600}
+.phases{display:flex;gap:8px;padding:12px 28px 4px}
+.ph{flex:1;text-align:center;padding:8px;border-bottom:4px solid var(--line);color:var(--mute);font-size:20px;font-weight:600;cursor:pointer}
+.ph.cur{border-color:var(--navy);color:var(--navy)}
+main{flex:1;display:grid;grid-template-columns:2.3fr 1fr;gap:22px;padding:10px 28px 14px;min-height:0}
+main.one{grid-template-columns:1fr}
+.panel{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:14px 20px;overflow:auto}
+.panel h2{margin:0 0 10px;font-size:15px;letter-spacing:.08em;text-transform:uppercase;color:var(--navy);font-weight:600}
+.glyph{font-family:"Segoe UI Symbol","Noto Sans Symbols 2","DejaVu Sans",sans-serif;font-weight:400;margin-right:6px}
+table.at{width:100%;border-collapse:collapse;table-layout:fixed}
+.at th{font-size:14px;letter-spacing:.08em;text-transform:uppercase;color:var(--navy);text-align:center;padding:4px 6px;border-bottom:2px solid var(--line);font-weight:600}
+.at th.l{text-align:left}
+.at td{border-bottom:1px solid var(--line);padding:6px 6px;font-size:22px;vertical-align:middle;text-align:center}
+.at td.nm{text-align:left;line-height:1.2;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.cn{font-size:22px;color:var(--navy)}
+.stu{font-size:15px;color:var(--mute);margin-left:8px}
+.sbf{color:#B8860B;margin-left:6px}
+.at tr.grp td{background:#F1EBDD;font-size:15px;letter-spacing:.08em;text-transform:uppercase;font-weight:600;color:var(--navy);text-align:left;padding:7px 8px}
+.at tr.crew td.nm{padding-left:26px}
+.at td.with{font-size:16px;color:var(--mute);font-style:italic}
+.at td.tot{font-size:30px;font-weight:600;color:var(--navy);font-variant-numeric:tabular-nums;width:70px}
+.at td.bon{width:60px;color:var(--navy)}
+select.sp{font:inherit;font-size:18px;padding:4px 6px;border:1px solid var(--line);border-radius:6px;background:#fff;color:var(--navy)}
+select.sp.over{outline:3px solid var(--red)}
+td .rbox{display:inline-flex;align-items:center;gap:4px}
+button.die{border:none;background:none;cursor:pointer;font-size:24px;color:var(--mute);padding:0 2px;line-height:1}
+button.die:hover{color:var(--navy)}
+input.roll{width:52px;font:inherit;font-size:26px;font-weight:600;text-align:center;padding:2px;border:1px solid var(--line);border-radius:6px;background:#fff;color:var(--navy)}
+input.roll:focus{outline:3px solid #8C93A8}
+.res{font-weight:600;font-size:19px;letter-spacing:.06em;white-space:nowrap}
+.res.y{color:var(--win)}.res.n{color:var(--red)}.res.s{color:var(--red)}
+.first{display:inline-block;background:var(--win);color:#fff;font-size:12px;letter-spacing:.08em;padding:2px 7px;border-radius:4px;margin-left:6px;vertical-align:middle}
+.at tr.won td{background:var(--winbg)}
+.at tr.out td{color:#A9A9A9;font-size:18px;padding:4px 6px}
+.at tr.out .cn,.at tr.out .stu{color:#A9A9A9;font-size:17px}
+.need{display:grid;grid-template-columns:1fr auto;gap:8px 12px;align-items:baseline;font-size:21px;margin-bottom:10px}
+.need .n{font-size:52px;font-weight:600;color:var(--navy);line-height:1;font-variant-numeric:tabular-nums;text-align:right}
+.need .l{color:var(--navy);font-weight:500}
+.need .l small{display:block;font-size:15px;color:var(--mute);font-weight:400}
+.keys{font-size:16px;color:var(--mute);line-height:1.45;border-top:1px solid var(--line);padding-top:10px;margin-top:6px}
+.keys b{color:var(--navy)}
+.banner{border-radius:10px;padding:14px 16px;margin-bottom:14px;text-align:center;color:#fff}
+.banner .big{font-family:"EB Garamond",Georgia,serif;font-size:34px;font-weight:600;line-height:1.1}
+.banner .sm{font-size:18px;margin-top:4px}
+.banner.ok{background:var(--win)}.banner.bad{background:var(--red)}
+.tally{display:flex;gap:10px;margin-bottom:12px}
+.tally>div{flex:1;border-left:6px solid var(--line);padding:2px 10px}
+.tally .num{font-size:40px;font-weight:600;color:var(--navy);line-height:1}
+.tally .lab{font-family:"EB Garamond",Georgia,serif;font-variant:small-caps;font-size:22px;font-weight:600}
+.tally .y{border-color:var(--win)}.tally .y .lab{color:var(--win)}
+.tally .n{border-color:var(--red)}.tally .n .lab{color:var(--red)}
+.tally .p{border-color:var(--grey)}.tally .p .lab{color:var(--grey)}
+.held{font-size:16px;color:var(--mute);margin-top:8px}
+/* round 3 */
+.offer{font-family:"EB Garamond",Georgia,serif;font-size:30px;color:var(--navy);line-height:1.25;margin-bottom:14px}
+.price{display:flex;align-items:baseline;gap:14px;margin:6px 0 4px}
+.price .n{font-size:80px;font-weight:600;color:var(--navy);line-height:1;font-variant-numeric:tabular-nums}
+.price .l{font-size:22px;color:var(--mute)}
+.bar{height:22px;border-radius:11px;background:#ECE6D8;overflow:hidden;margin:6px 0 14px}
+.bar div{height:100%;background:var(--win)}
+.pl{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+.pc{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:6px 8px 6px 14px;border:1px solid var(--line);border-radius:24px;background:#fff;font-size:19px;min-width:0}
+.pc .nm{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pc .stu{font-size:13px;margin-left:5px}
+.pc.deal{background:var(--win);border-color:var(--win);color:#fff}.pc.deal .stu{color:#DDEFE3}.pc.deal .cn{color:#fff}.pc.deal .amt{color:#fff}
+.pc input{width:56px;font:inherit;font-size:20px;font-weight:600;text-align:center;border:1px solid var(--line);border-radius:14px;padding:2px;color:var(--navy)}
+.pc .amt{font-weight:600;color:var(--win);font-size:20px}
+.rules3{font-size:17px;line-height:1.4;padding-left:20px;margin:6px 0 16px}.rules3 li{margin-bottom:6px}
+.gbtn{display:block;width:100%;font:inherit;font-family:"EB Garamond",Georgia,serif;font-size:30px;font-weight:600;padding:12px;border-radius:10px;border:none;background:var(--win);color:#fff;cursor:pointer;margin-bottom:10px}
+.gbtn:disabled{background:#C9CFC9;cursor:not-allowed}
+.gbtn.shut{background:#fff;color:var(--red);border:2px solid var(--red);font-size:20px;padding:8px}
+.gbtn.undo{background:#fff;color:var(--mute);border:1px solid var(--line);font-size:17px;padding:6px}
+.clock{font-size:96px;font-weight:600;text-align:center;font-variant-numeric:tabular-nums;color:var(--navy);line-height:1;margin:4px 0 12px}
+.clock.warn{color:var(--amber)}.clock.zero{color:var(--red)}
+/* sack */
+.so{width:100%;border-collapse:collapse}
+.so td{border-bottom:1px solid var(--line);padding:6px 6px;font-size:21px;vertical-align:middle}
+.so td.k{width:44px;text-align:center;font-weight:600;color:#fff}
+.so td.k span{display:inline-flex;width:34px;height:34px;border-radius:17px;background:var(--navy);align-items:center;justify-content:center;font-size:17px}
+.so tr.band td{background:#F1EBDD}
+.so tr.cur td{background:#E3E6EE}
+
+.so td.nm{white-space:nowrap}
+.so td.tier{font-size:13px;letter-spacing:.06em;text-transform:uppercase;color:var(--mute);width:170px}
+.so select{font:inherit;font-size:18px;padding:4px 6px;border:1px solid var(--line);border-radius:6px;background:#fff;color:var(--navy)}
+.so td.slot{font-weight:600;color:var(--navy);white-space:nowrap;width:150px}
+.so td.slot .cd{font-size:13px;color:var(--mute);font-weight:500;margin-left:4px}
+.so td.mv{width:60px;white-space:nowrap}
+.so td.mv button{border:none;background:none;font-size:18px;cursor:pointer;color:var(--mute);padding:0 3px}
+body:not(.ctlon) .so td.mv{display:none}
+.nx{font-size:21px}
+.nx div{display:flex;justify-content:space-between;padding:9px 2px;border-bottom:1px solid var(--line)}
+.nx b{color:var(--navy);font-weight:600}
+.nx .full{color:#A9A9A9}
+/* setup */
+.st-t{width:100%;border-collapse:collapse;font-size:17px}
+.st-t th{font-size:13px;letter-spacing:.08em;text-transform:uppercase;color:var(--navy);text-align:left;padding:4px 6px;border-bottom:2px solid var(--line)}
+.st-t td{padding:5px 6px;border-bottom:1px solid var(--line)}
+.st-t input[type=checkbox]{width:22px;height:22px;cursor:pointer}
+.st-t td.chg{font-weight:600}.st-t td.chg.pos{color:var(--win)}.st-t td.chg.neg{color:var(--red)}
+.st-t td.now{font-weight:600;color:var(--navy);font-size:19px}
+.st-t input[type=number]{width:64px;font:inherit;padding:2px 4px}
+.st-t select{font:inherit;padding:2px 4px}
+.st-t tr.abs td{color:#A9A9A9}
+.warn{color:var(--red);font-weight:600;font-size:15px}
+#ctl{background:var(--navy);color:#eee;padding:8px 16px;display:flex;gap:8px;flex-wrap:wrap;align-items:center;font-size:13px}
+#ctl button,#ctl select,#ctl input{font:inherit;padding:4px 8px;border-radius:4px;border:1px solid #555;background:var(--navy2);color:#eee}
+#ctl button.on{background:#C9A86A;color:var(--navy);border-color:#C9A86A}
+#ctl .sep{width:1px;height:20px;background:#555;margin:0 4px}
+#ctl .msg{color:#C9A86A}
+#ctl .k{color:#9aa;margin-left:auto}
+.hidden{display:none!important}
+</style>
+</head>
+<body class="ctlon">
+<header id="tabs"></header>
+<div class="title"><h1 id="h1"></h1><p class="sub" id="sub"></p></div>
+<div class="phases" id="phases"></div>
+<main id="main"></main>
+<div id="ctl">
+  <select id="secSel" title="Section"><option value="02">Section 02</option><option value="12">Section 12</option></select>
+  <button id="loadBtn" title="Load the Fama Tracker (.xlsx), Totals tab">Load fama…</button>
+  <input type="file" id="file" accept=".xlsx,.xls,.csv" class="hidden">
+  <button id="setupBtn">Setup ▸</button>
+  <span class="sep"></span>
+  <span id="ctx"></span>
+  <span class="sep"></span>
+  <button id="ledgerBtn" title="Fama changes, ready to paste into the Ledger tab">Ledger CSV</button>
+  <button id="sackBtn" title="Sack order and places">Sack CSV</button>
+  <button id="mailBtn" title="Send both CSVs to your email (Netlify site only)">Email record</button>
+  <button id="resetBtn">Reset section</button>
+  <span class="msg" id="msg"></span>
+  <span class="k">H hide bar · Enter next roll</span>
+</div>
+<form name="siege-record" data-netlify="true" netlify-honeypot="bot-field" hidden>
+  <input name="bot-field"><input name="section"><textarea name="ledger"></textarea><textarea name="sack"></textarea>
+</form>
+<script>
+const $=id=>document.getElementById(id);
+const esc=s=>String(s??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const G=g=>`<span class="glyph">${g}︎</span>`;
+const FAC={"Imperial":"♛","Venetian":"⚓","Northern French":"⚜","Clerical":"☩","Indeterminate":"⚖"};
+const FACNAME={"Imperial":"Imperials","Venetian":"Venetians","Northern French":"N. French","Clerical":"Clerics","Indeterminate":"Indeterminates"};
+const CHAR={1:["Boniface of Montferrat","Imperial"],11:["Oberto of Biandrate","Imperial"],16:["Berthold of Katzenelnbogen","Imperial"],2:["Enrico Dandolo","Venetian"],7:["Angelo Falier","Venetian"],3:["Baldwin of Flanders","Northern French"],6:["Louis of Blois","Northern French"],15:["Geoffrey of Villehardouin","Northern French"],4:["Nivelon of Soissons","Clerical"],8:["John of Noyon","Clerical"],12:["Martin of Pairis","Clerical"],5:["Robert of Clari","Indeterminate"],10:["Empress Anna","Indeterminate"],14:["Theodore Branas","Indeterminate"]};
+const ROSTER={"02":[["Ethan",1],["Brendan",11],["Owen",2],["Stella",7],["Lucinda",15],["Emma",3],["Paddy",6],["Najla",4],["Carlos",8],["Montrell",12],["Alice",5],["Aniela",10],["Neha",14]],
+"12":[["Cameron",1],["Shrihith",11],["Mark",16],["Ashe",2],["Dary",7],["Sammy",3],["Olivia",6],["Liam",15],["Zoë",4],["Lily",8],["Molly",12],["Mya",5],["Jaclyn",10],["Ava",14]]};
+const CAPS=["Dandolo","Falier","Oberto"];
+const REG=[["G","Great Palace"],["B","Blachernae"],["M","Merchant’s Quarter"],["P","Petrion"],["R","Greek Residential"]];
+const ORD=["1st","2nd","3rd","4th","5th","6th"];
+const SPEND=[0,1,2], SPCOST={0:0,1:1,2:4};
+const PH=["To the Walls","Over the Walls","Into the City"];
+const NAMES=[["Boniface","Boniface"],["Oberto","Oberto"],["Berthold","Berthold"],["Dandolo","Dandolo"],["Falier","Falier"],["Barbo","Barbo"],["Geoffrey","Geoffrey"],["Baldwin","Baldwin"],["Louis","Louis"],["Nivelon","Nivelon"],["John","John"],["Martin","Martin"],["Robert","Robert"],["Anna","Anna"],["Branas","Branas"]];
+const short=c=>{c=c||"";const m=NAMES.find(([k])=>c.includes(k));return m?m[1]:c.split(/ of | /)[0]};
+const fullCap=k=>{const p=D().players.find(x=>capOf(x.char)===k);return p?p.char:k};
+const capOf=c=>CAPS.find(k=>new RegExp(k).test(c||""))||null;
+
+function fresh(sec){return{players:ROSTER[sec].map(([s,id],i)=>({id:sec+"-"+i,stu:s,char:CHAR[id][0],fac:CHAR[id][1],fama:0,wall:capOf(CHAR[id][0])?"cap":"land",vol:false,here:true})),sb:"",loaded:"",rounds:{1:{step:1,r:{}},2:{step:1,r:{}}},r3:{deal:"",pl:{},done:false,lost:false,clock:180,run:false},sack:{order:null,ch:{}}}}
+let S={sec:"02",tab:"r1",setup:false,data:{}};
+try{const x=JSON.parse(localStorage.getItem("siege1"));if(x&&x.data)S=x}catch(e){}
+["02","12"].forEach(s=>{if(!S.data[s])S.data[s]=fresh(s)});
+const save=()=>{try{localStorage.setItem("siege1",JSON.stringify(S))}catch(e){}};
+const D=()=>S.data[S.sec];
+const P=id=>D().players.find(p=>p.id===id);
+const sbOf=p=>D().sb&&p.fac===D().sb?1:0;
+
+/* ---------- fama: every change, in order ---------- */
+// changes(upto): fama changes from rounds before `upto` (9 = everything)
+function changes(upto=9){
+  const out=[],d=D();
+  const spends=R=>{const e=evalRound(R);e.parts.forEach(x=>[1,2,3].forEach(k=>{const c=cell(R,x.p.id,k);if(+c.sp)out.push([x.p.id,"Spent",SPCOST[+c.sp],`Siege round ${R}, step ${k}: +${c.sp} to roll`])}));
+    e.parts.forEach(x=>{if(e.st[x.p.id].s1==="s")out.push([x.p.id,"Penalty",1,`Siege round ${R}: ship sank`])});return e};
+  if(upto<=1)return out;
+  const e1=spends(1);
+  if(e1.outcome==="fell"){e1.parts.forEach(x=>{if(e1.st[x.p.id].s1!=="s")out.push([x.p.id,"Earned",1,"Siege round 1: the city fell"])});out.push([e1.first,"Earned",1,"First into the city"]);return out}
+  if(e1.outcome!=="failed")return out;
+  e1.parts.forEach(x=>{if(e1.st[x.p.id].s1!=="s")out.push([x.p.id,"Penalty",1,"Siege round 1 failed"])});
+  if(upto<=2)return out;
+  const e2=spends(2);
+  if(e2.outcome==="fell"){out.push([e2.first,"Earned",1,"First into the city"]);return out}
+  if(e2.outcome!=="failed"||upto<=3)return out;
+  const r3=d.r3;
+  if(r3.done){Object.entries(r3.pl).forEach(([id,n])=>{if(+n>0)out.push([id,"Spent",+n,"Bribe to open the gates"])});out.push([r3.deal,"Earned",1,"Opened the gates: first into the city"])}
+  else if(r3.lost){const before=famaMap(3);d.players.forEach(p=>{const n=Math.max(0,before[p.id]);if(n)out.push([p.id,"Penalty",n,"The gates stayed shut: the crusade collapses"])})}
+  return out}
+function famaMap(upto=9){const m={};D().players.forEach(p=>m[p.id]=+p.fama||0);changes(upto).forEach(([id,t,n])=>{if(m[id]==null)return;m[id]+=t==="Earned"?n:-n});return m}
+function cell(R,id,k){const r=D().rounds[R].r;return(r[id]&&r[id][k])||{}}
+
+/* ---------- one round ---------- */
+function shipOf(p){if(p.wall==="cap")return capOf(p.char);if(CAPS.includes(p.wall))return p.wall;return null}
+function participants(R){
+  const here=D().players.filter(p=>p.here),capP=k=>here.find(p=>p.wall==="cap"&&capOf(p.char)===k),out=[];
+  here.forEach(p=>{let ship=shipOf(p);const cp=ship?capP(ship):null;if(ship&&!cp)ship=null;
+    if(R===1){if(ship){if(!cp.vol)return}else if(!p.vol)return}
+    out.push({p,ship})});
+  return out}
+function evalRound(R){
+  const fb=famaMap(R),fam=id=>fb[id];
+  const parts=participants(R),byF=(a,b)=>fam(b.p.id)-fam(a.p.id)||a.p.stu.localeCompare(b.p.stu);
+  const ships={};parts.forEach(x=>{if(x.ship)(ships[x.ship]=ships[x.ship]||[]).push(x)});
+  const land=parts.filter(x=>!x.ship).sort(byF);
+  const shipList=Object.keys(ships).map(k=>{const m=ships[k].sort((a,b)=>(b.p.wall==="cap")-(a.p.wall==="cap")||byF(a,b));return{k,m,sum:m.reduce((s,x)=>s+fam(x.p.id),0)}}).sort((a,b)=>b.sum-a.sum);
+  const st={};parts.forEach(x=>st[x.p.id]={x,tot:{}});
+  const tot=(id,k)=>{const c=cell(R,id,k);if(c.roll==null||c.roll==="")return null;return{raw:+c.roll,t:+c.roll+(+c.sp||0)+sbOf(P(id))}};
+  const pass=(r,need,p)=>r.t>=need&&!(r.raw===1&&!sbOf(p));
+  shipList.forEach(s=>{const cap=s.m[0],r=tot(cap.p.id,1);s.m.forEach(x=>{const o=st[x.p.id];o.s1=r?(r.t>=2?"y":"s"):null;if(x===cap&&r)o.tot[1]=r.t})});
+  land.forEach(x=>{const r=tot(x.p.id,1),o=st[x.p.id];if(r){o.tot[1]=r.t;o.s1=pass(r,5,x.p)?"y":"n"}else o.s1=null});
+  parts.forEach(x=>{const o=st[x.p.id];if(o.s1!=="y")return;const r=tot(x.p.id,2);if(r){o.tot[2]=r.t;o.s2=pass(r,6,x.p)?"y":"n"}else o.s2=null});
+  const grpN={land:0,sea:0},pend2={land:false,sea:false};
+  parts.forEach(x=>{const o=st[x.p.id],g=x.ship?"sea":"land";if(o.s2==="y")grpN[g]++;if(o.s1==null||(o.s1==="y"&&o.s2==null))pend2[g]=true});
+  const need={land:6-grpN.land,sea:6-grpN.sea};
+  parts.forEach(x=>{const o=st[x.p.id],g=x.ship?"sea":"land";if(o.s2!=="y")return;const r=tot(x.p.id,3);if(r){o.tot[3]=r.t;o.s3=pass(r,need[g],x.p)?"y":"n"}else o.s3=null});
+  const all=Object.values(st);
+  const pending=all.some(o=>o.s1==null||(o.s1==="y"&&o.s2==null)||(o.s2==="y"&&o.s3==null));
+  const winners=all.filter(o=>o.s3==="y").sort((a,b)=>fam(b.x.p.id)-fam(a.x.p.id)||(b.tot[3]-a.tot[3]));
+  let outcome=null,first=null;
+  if(parts.length&&!pending){if(winners.length){outcome="fell";first=winners[0].x.p.id}else outcome="failed"}
+  return{R,parts,ships:shipList,land,st,need,grpN,pend2,outcome,first,fam}}
+function fellIn(){const a=evalRound(1);if(a.outcome==="fell")return 1;if(a.outcome!=="failed")return 0;const b=evalRound(2);if(b.outcome==="fell")return 2;if(b.outcome!=="failed")return 0;return D().r3.done?3:0}
+function r3price(){const d=P(D().r3.deal);if(!d)return 20;if(/Boniface/.test(d.char))return 15;if(/Anna/.test(d.char))return 12;return 20}
+
+/* ---------- sack order ---------- */
+const TIERS=["Opened the gates","Paid the bribe","First into the city","Reached the city roll","Over the first wall / at the wall","Failed the first roll","Ship sank","Held back","Everyone else"];
+function sackOrder(){
+  const f=fellIn();if(!f)return null;const d=D(),now=famaMap(9),tier={},pl=d.r3.pl;
+  if(f===3){d.players.filter(p=>p.here).forEach(p=>tier[p.id]=p.id===d.r3.deal?0:(+pl[p.id]>0?1:8))}
+  else{const e=evalRound(f);d.players.filter(p=>p.here).forEach(p=>{const o=e.st[p.id];let t=7;
+    if(o){if(e.first===p.id)t=2;else if(o.s2==="y")t=3;else if(o.s1==="y")t=4;else if(o.s1==="n")t=5;else if(o.s1==="s")t=6}tier[p.id]=t})}
+  let ids=Object.keys(tier).sort((a,b)=>tier[a]-tier[b]||(tier[a]===1?(+pl[b])-(+pl[a]):0)||now[b]-now[a]||P(a).stu.localeCompare(P(b).stu));
+  const ov=d.sack.order;
+  if(ov&&ov.length===ids.length&&ov.every(i=>tier[i]!=null))ids=ov;
+  return{ids,tier}}
+function slots(ids){const used={},res={};ids.forEach(id=>{const c=D().sack.ch[id];if(c&&c!=="X"){used[c]=(used[c]||0)+1;res[id]=used[c]<=6?used[c]:null}});return{used,res}}
+
+/* ---------- render ---------- */
+function visibleTabs(){const e1=evalRound(1),e2=e1.outcome==="failed"?evalRound(2):{},f=fellIn(),d=D();
+  const T=[["r1","Round 1",e1.outcome]];
+  if(e1.outcome==="failed")T.push(["r2","Round 2",e2.outcome]);
+  if(e2.outcome==="failed")T.push(["r3","Round 3",d.r3.done?"fell":d.r3.lost?"failed":null]);
+  if(f)T.push(["sack","Sack Order",null]);return T}
+function tabs(){
+  const T=visibleTabs();if(!T.some(t=>t[0]===S.tab))S.tab=T[T.length-1][0];
+  const lab=(k,o)=>o==="fell"?(k==="r3"?"gates opened":"city fell"):o==="failed"?(k==="r3"?"gates shut":"failed"):"";
+  $("tabs").innerHTML=T.map(([k,n,o])=>{let c="tab";if(o==="fell")c+=" done";else if(o==="failed")c+=" fail";if(S.tab===k)c+=" cur";
+    return`<div class="${c}" data-t="${k}">${n}${o?`<span class="st">${lab(k,o)}</span>`:""}</div>`}).join("")+`<div class="sec">Section ${S.sec}</div>`;
+  document.querySelectorAll(".tab[data-t]").forEach(t=>t.onclick=()=>{S.tab=t.dataset.t;S.setup=false;save();render()})}
+const who=(p,noSB)=>`${G(FAC[p.fac]||"")}<span class="cn">${esc(short(p.char))}</span>${sbOf(p)&&!noSB?`<span class="sbf">${G("⚑")}</span>`:""}<span class="stu">${esc(p.stu)}</span>`;
+function spendSel(R,p,k,now){const c=cell(R,p.id,k),v=+c.sp||0,avail=now[p.id]+SPCOST[v];
+  return`<select class="sp" data-r="${R}" data-id="${p.id}" data-k="${k}">${SPEND.map(n=>`<option value="${n}"${n===v?" selected":""}${SPCOST[n]>avail&&n!==v?" disabled":""}>${n?`+${n} (${SPCOST[n]} fama)`:"—"}</option>`).join("")}</select>`}
+function rollIn(R,p,k){const c=cell(R,p.id,k);return`<span class="rbox"><input class="roll" inputmode="numeric" maxlength="1" data-r="${R}" data-id="${p.id}" data-k="${k}" value="${c.roll??""}"><button class="die" title="Roll a die" data-r="${R}" data-id="${p.id}" data-k="${k}">${G("⚄")}</button></span>`}
+const d6=()=>{const a=new Uint32Array(1);crypto.getRandomValues(a);return a[0]%6+1};
+function resTxt(v,first){if(v==="y")return`<span class="res y">SUCCESS</span>${first?'<span class="first">FIRST IN</span>':""}`;if(v==="n")return'<span class="res n">FAILURE</span>';if(v==="s")return'<span class="res s">SANK</span>';return'<span class="res" style="color:#bbb">—</span>'}
+function renderRound(R){
+  const d=D(),rd=d.rounds[R],e=evalRound(R),k=rd.step,now=famaMap(9);
+  $("h1").textContent=`Round ${R}`;
+  $("sub").innerHTML=R===1?"<b>Voluntary.</b> If anyone gets in, every volunteer gains 1 fama; if no one does, every volunteer loses 1.":"<b>Everyone attacks.</b> No fama gained or lost for attacking, except sinking (−1) and first in (+1).";
+  $("phases").innerHTML=PH.map((p,i)=>`<div class="ph ${i+1===k?"cur":""}" data-s="${i+1}">${i+1}. ${p}</div>`).join("");
+  document.querySelectorAll(".ph").forEach(x=>x.onclick=()=>{rd.step=+x.dataset.s;save();render()});
+  const key=`s${k}`,inStep=x=>{const o=e.st[x.p.id];return k===1||(k===2?o.s1==="y":o.s2==="y")};
+  const cols=`<colgroup><col><col style="width:150px"><col style="width:104px"><col style="width:70px"><col style="width:76px"><col style="width:150px"></colgroup>`;
+  const head=`<tr><th class="l">Attacker</th><th>Spend</th><th>Roll</th><th>Bonus</th><th>Total</th><th>Result</th></tr>`;
+  const row=(x,isCap,crew)=>{const p=x.p,o=e.st[p.id];
+    const won=k===3&&e.first===p.id&&e.outcome==="fell";let cls=(crew?"crew":"")+(won?" won":"");
+    if(k===1&&x.ship&&!isCap)return`<tr class="${cls}"><td class="nm">${who(p)}</td><td colspan="4" class="with">sails with the captain</td><td>${resTxt(o.s1)}</td></tr>`;
+    const c=cell(R,p.id,k),b=(+c.sp||0)+sbOf(p),t=o.tot[k];
+    return`<tr class="${cls}"><td class="nm">${who(p)}</td><td>${spendSel(R,p,k,now)}</td><td>${rollIn(R,p,k)}</td><td class="bon">${b?"+"+b:""}</td><td class="tot">${t??""}</td><td>${resTxt(o[key],won)}</td></tr>`};
+  const grp=t=>`<tr class="grp"><td colspan="6">${t}</td></tr>`;
+  let rows="";
+  if(k===1){e.ships.forEach(s=>{rows+=grp(`${G("⛵")}Ship of ${esc(fullCap(s.k))}`)+s.m.map((x,i)=>row(x,i===0,i>0)).join("")});
+    if(e.land.length)rows+=grp(`${G("♜")}Land Walls`)+e.land.map(x=>row(x,false,false)).join("")}
+  else{const sea=e.parts.filter(x=>x.ship&&inStep(x)).sort((a,b)=>e.fam(b.p.id)-e.fam(a.p.id)),ld=e.land.filter(inStep);
+    if(sea.length)rows+=grp(`${G("⛵")}Sea Walls`)+sea.map(x=>row(x,false,false)).join("");
+    if(ld.length)rows+=grp(`${G("♜")}Land Walls`)+ld.map(x=>row(x,false,false)).join("")}
+  const outs=e.parts.filter(x=>!inStep(x));
+  if(outs.length)rows+=grp('<span style="color:var(--mute)">Out of the attack</span>')+outs.map(x=>{const o=e.st[x.p.id];const why=o.s1==="s"?"Ship sank":o.s1==="n"?"Failed step 1":"Failed step 2";return`<tr class="out"><td class="nm">${who(x.p)}</td><td colspan="5" style="text-align:left">${why}</td></tr>`}).join("");
+  if(!e.parts.length)rows=`<tr><td colspan="6" style="text-align:left;color:var(--mute);font-size:20px;padding:20px 6px">${R===1?"No volunteers yet. Tick volunteers in Setup.":"No attackers. Check attendance in Setup."}</td></tr>`;
+  let rp="";
+  if(e.outcome==="fell"){const p=P(e.first);rp+=`<div class="banner ok"><div class="big">The city falls</div><div class="sm">First in: <b>${esc(short(p.char))}</b> (${esc(p.stu)})</div></div>`}
+  else if(e.outcome==="failed")rp+=`<div class="banner bad"><div class="big">The attack fails</div><div class="sm">${R===1?"Round 2: everyone attacks.":"The crusade is in danger."}</div></div>`;
+  rp+=`<h2>Step ${k}: ${PH[k-1]}</h2><div class="need">`;
+  if(k===1)rp+=`<div class="l">Land walls<small>roll this or higher</small></div><div class="n">5</div><div class="l">Ships<small>captain rolls; on a 1 the ship sinks</small></div><div class="n">2</div>`;
+  if(k===2)rp+=`<div class="l">Both walls<small>roll a 6</small></div><div class="n">6</div>`;
+  if(k===3){if(e.ships.length)rp+=`<div class="l">Sea walls<small>${e.grpN.sea} onto the wall</small></div><div class="n">${e.pend2.sea?"…":e.need.sea}</div>`;
+    if(e.land.length)rp+=`<div class="l">Land walls<small>${e.grpN.land} over the inner wall</small></div><div class="n">${e.pend2.land?"…":e.need.land}</div>`}
+  rp+=`</div>`;
+  const live=e.parts.filter(inStep),okN=live.filter(x=>e.st[x.p.id][key]==="y").length,noN=live.filter(x=>["n","s"].includes(e.st[x.p.id][key])).length;
+  rp+=`<div class="tally"><div class="y"><div class="num">${okN}</div><div class="lab">Through</div></div><div class="n"><div class="num">${noN}</div><div class="lab">Stopped</div></div><div class="p"><div class="num">${live.length-okN-noN}</div><div class="lab">To roll</div></div></div>`;
+  if(!e.outcome&&e.parts.some(x=>e.st[x.p.id].s1!=null)){const stepOf=x=>{const o=e.st[x.p.id];return o.s1==null?1:(o.s1==="y"&&o.s2==null)?2:(o.s2==="y"&&o.s3==null)?3:0};const wait=e.parts.filter(x=>{const o=e.st[x.p.id],n=stepOf(x);if(!n||n>k)return false;return(o.s1==null&&(!x.ship||e.ships.find(s=>s.k===x.ship).m[0]===x))||(o.s1==="y"&&o.s2==null)||(o.s2==="y"&&o.s3==null)});
+    if(wait.length)rp+=`<div class="held" style="margin:0 0 10px"><b>Still to roll:</b> ${wait.map(x=>{const o=e.st[x.p.id];return esc(short(x.p.char))+` (step ${o.s1==null?1:o.s2==null?2:3})`}).join(", ")}</div>`}
+  if(R===1){const held=d.players.filter(p=>p.here&&!e.parts.some(x=>x.p.id===p.id));if(held.length)rp+=`<div class="held"><b>Holding back:</b> ${held.map(p=>esc(short(p.char))).join(", ")}</div>`}
+  rp+=`<div class="keys">${k>1?"<b>A 1 always fails</b> on a wall roll, unless ⚑.<br>":""}<span class="sbf" style="margin:0">${G("⚑")}</span><b>Standard-Bearer${d.sb?` (${FACNAME[d.sb]})`:""}:</b> +1 to every roll<br><b>Spend:</b> +1 for 1 fama · +2 for 4 fama, before the roll</div>`;
+  $("main").className="";$("main").innerHTML=`<div class="panel"><table class="at">${cols}${head}${rows}</table></div><div class="panel">${rp}</div>`;
+  wireRolls();
+  $("ctx").innerHTML=`<button id="prevS">◂ Step</button><button id="nextS">Step ▸</button><button id="rollAll" title="Fill every empty roll on this step with a random die">Roll all empty</button>`;
+  $("rollAll").onclick=()=>{document.querySelectorAll("input.roll").forEach(i=>{if(!i.value)setCell(i.dataset,"roll",String(d6()))});render()};
+  $("prevS").onclick=()=>{if(rd.step>1){rd.step--;save();render()}};$("nextS").onclick=()=>{if(rd.step<3){rd.step++;save();render()}};
+}
+function wireRolls(){
+  document.querySelectorAll("button.die").forEach(b=>b.onclick=()=>{setCell(b.dataset,"roll",String(d6()));render()});
+  document.querySelectorAll("select.sp").forEach(s=>s.onchange=()=>{setCell(s.dataset,"sp",+s.value);render()});
+  const ins=[...document.querySelectorAll("input.roll")];
+  ins.forEach((inp,i)=>{
+    inp.oninput=()=>{const v=inp.value.replace(/[^1-6]/g,"").slice(-1);inp.value=v;setCell(inp.dataset,"roll",v);const id=inp.dataset.id;render();
+      const nx=[...document.querySelectorAll("input.roll")];const j=nx.findIndex(x=>x.dataset.id===id);if(v&&j>=0&&nx[j+1])nx[j+1].focus();else if(j>=0)nx[j].focus()};
+    inp.onkeydown=ev=>{if(ev.key==="Enter"&&ins[i+1]){ev.preventDefault();ins[i+1].focus()}}});
+}
+function setCell(ds,f,v){const r=D().rounds[ds.r].r;r[ds.id]=r[ds.id]||{};r[ds.id][ds.k]=r[ds.id][ds.k]||{};r[ds.id][ds.k][f]=v;save()}
+let tick=null;
+function renderR3(){
+  const d=D(),r3=d.r3,price=r3price(),now=famaMap(9);
+  const here=d.players.filter(p=>p.here),deal=P(r3.deal);
+  const sum=Object.values(r3.pl).reduce((s,n)=>s+(+n||0),0),dealPl=deal?(+r3.pl[deal.id]||0):0;
+  $("h1").textContent="Round 3";$("phases").innerHTML="";
+  $("sub").innerHTML="<b>The gates.</b> A last chance to take the city.";
+  const ordered=deal?[deal,...here.filter(p=>p!==deal)]:here;
+  const chip=p=>{const v=r3.pl[p.id];const lock=r3.done||r3.lost;
+    return`<div class="pc${p===deal?" deal":""}"><span class="nm">${who(p,true)}</span>${lock?`<span class="amt">${+v||""}</span>`:`<input data-id="${p.id}" inputmode="numeric" value="${v??""}" title="Has ${now[p.id]} fama">`}</div>`};
+  let L=`<div class="offer">A Greek inside the walls will open a gate, for a price, through one crusader. Any of you may pledge fama toward it.</div>
+  <div class="price"><div class="n">${sum} <span style="color:var(--mute);font-size:48px">/ ${price}</span></div><div class="l">fama pledged${deal?` · through <b style="color:var(--navy)">${esc(short(deal.char))}</b> (${esc(deal.stu)})`:""}</div></div>
+  <div class="bar"><div style="width:${Math.min(100,sum/price*100)}%"></div></div>
+  <h2>Pledges</h2><div class="pl">${ordered.map(chip).join("")}</div>`;
+  const m=Math.floor(r3.clock/60),s=r3.clock%60;
+  let Rp="";
+  if(r3.done)Rp+=`<div class="banner ok"><div class="big">The gates open</div><div class="sm">${deal?`${esc(short(deal.char))} leads the army in`:""}</div></div>`;
+  else if(r3.lost)Rp+=`<div class="banner bad"><div class="big">The gates stay shut</div><div class="sm">The crusade collapses.</div></div>`;
+  else Rp+=`<div class="clock ${r3.clock<=0?"zero":r3.clock<=30?"warn":""}">${m}:${String(s).padStart(2,"0")}</div>`;
+  Rp+=`<ul class="rules3"><li>The deal goes through one crusader, who must pledge at least 1 fama.</li><li>Anyone may pledge. Pledges are paid only if the gates open.</li><li>Order into the city: the one who made the deal (+1 fama), then those who paid, most first, then everyone else by fama.</li><li><b>If the gates stay shut, the crusade collapses: everyone loses all their fama.</b></li></ul>`;
+  const ready=deal&&dealPl>=1&&sum>=price;
+  if(r3.done||r3.lost)Rp+=`<button class="gbtn undo" id="undoG">◂ Reopen</button>`;
+  else Rp+=`<button class="gbtn" id="openG"${ready?"":" disabled"}>Open the Gates</button>${!deal?'<div class="held">Choose who makes the deal (control bar).</div>':dealPl<1?`<div class="held">${esc(short(deal.char))} must pledge at least 1.</div>`:sum<price?`<div class="held">${price-sum} more fama needed.</div>`:""}<button class="gbtn shut" id="shutG">The gates stay shut</button>`;
+  $("main").className="";$("main").innerHTML=`<div class="panel">${L}</div><div class="panel">${Rp}</div>`;
+  document.querySelectorAll(".pc input").forEach(inp=>inp.onchange=()=>{let v=parseInt(inp.value,10);const id=inp.dataset.id;
+    if(v>now[id]){v=Math.max(0,now[id]);flash(`${short(P(id).char)} only has ${now[id]} fama.`)}
+    if(v>0)r3.pl[id]=v;else delete r3.pl[id];save();render()});
+  if($("openG"))$("openG").onclick=()=>{r3.done=true;r3.run=false;runClock();save();render()};
+  if($("shutG"))$("shutG").onclick=()=>{if(!confirm("Record that the gates stay shut? Everyone loses all their fama."))return;r3.lost=true;r3.run=false;runClock();save();render()};
+  if($("undoG"))$("undoG").onclick=()=>{r3.done=false;r3.lost=false;save();render()};
+  $("ctx").innerHTML=`Deal through <select id="dealSel"><option value="">—</option>${here.map(p=>`<option value="${p.id}"${p.id===r3.deal?" selected":""}>${esc(short(p.char))} (${esc(p.stu)})</option>`).join("")}</select>
+   <button id="clk">${r3.run?"Pause":"Start"} clock</button><button id="clkp">+1 min</button><button id="clkr">Reset clock</button>`;
+  $("dealSel").onchange=e=>{r3.deal=e.target.value;save();render()};
+  $("clk").onclick=()=>{r3.run=!r3.run;save();runClock();render()};
+  $("clkp").onclick=()=>{r3.clock+=60;save();render()};
+  $("clkr").onclick=()=>{r3.clock=180;r3.run=false;save();runClock();render()};
+}
+function runClock(){clearInterval(tick);tick=null;const r3=D().r3;if(r3.run)tick=setInterval(()=>{if(r3.clock>0)r3.clock--;else{r3.run=false;clearInterval(tick)}save();if(S.tab==="r3"&&!S.setup)render()},1000)}
+function renderSack(){
+  const so=sackOrder();$("phases").innerHTML="";
+  $("h1").textContent="The Sack";
+  if(!so){$("sub").textContent="The city hasn’t fallen yet.";$("main").className="one";$("main").innerHTML="";$("ctx").innerHTML="";return}
+  $("sub").innerHTML="Choose where to sack, in this order. Each region’s places fill in the order it is chosen.";
+  const {used,res}=slots(so.ids),ch=D().sack.ch,curIdx=so.ids.findIndex(id=>!ch[id]);
+  let band=false,prevT=null;
+  const rows=so.ids.map((id,i)=>{const p=P(id),c=ch[id]||"",n=res[id];if(so.tier[id]!==prevT){if(prevT!==null)band=!band;prevT=so.tier[id]}
+    return`<tr class="${band?"band":""}${i===curIdx?" cur":""}"><td class="k"><span>${i+1}</span></td><td class="nm">${who(p,true)}</td><td class="tier">${TIERS[so.tier[id]]}</td>
+    <td><select data-id="${id}"><option value="">choose…</option>${REG.map(([k,nm])=>`<option value="${k}"${c===k?" selected":""}${c!==k&&(used[k]||0)>=6?" disabled":""}>${nm}</option>`).join("")}<option value="X"${c==="X"?" selected":""}>Refuses</option></select></td>
+    <td class="slot">${c==="X"?'<span style="color:var(--mute)">Refuses</span>':c&&n?`${ORD[n-1]} place<span class="cd">${c}${n}</span>`:""}</td><td class="mv"><button data-u="${i}">▲</button><button data-d="${i}">▼</button></td></tr>`}).join("");
+  const nx=REG.map(([k,nm])=>{const u=used[k]||0;return u>=6?`<div class="full"><span>${nm}</span><span>full</span></div>`:`<div><span>${nm}</span><b>${ORD[u]}</b></div>`}).join("");
+  const ref=so.ids.filter(id=>ch[id]==="X").length;
+  $("main").className="";$("main").innerHTML=`<div class="panel"><table class="so">${rows}</table></div><div class="panel"><h2>Next available place</h2><div class="nx">${nx}</div>${ref?`<div class="held">Refusing: ${ref}</div>`:""}<div class="keys">Write your region and place on your plan sheet. Sack Worksheets due Tuesday, Nov 10, at 11:59pm.</div></div>`;
+  document.querySelectorAll(".so select").forEach(s=>s.onchange=()=>{if(s.value)ch[s.dataset.id]=s.value;else delete ch[s.dataset.id];save();render()});
+  const mv=(i,j)=>{const ids=[...so.ids];if(j<0||j>=ids.length)return;[ids[i],ids[j]]=[ids[j],ids[i]];D().sack.order=ids;save();render()};
+  document.querySelectorAll("[data-u]").forEach(b=>b.onclick=()=>mv(+b.dataset.u,+b.dataset.u-1));
+  document.querySelectorAll("[data-d]").forEach(b=>b.onclick=()=>mv(+b.dataset.d,+b.dataset.d+1));
+  $("ctx").innerHTML=`<button id="reord">Recompute order</button>`;
+  $("reord").onclick=()=>{D().sack.order=null;save();render()};
+}
+function renderSetup(){
+  const d=D(),now=famaMap(9);$("phases").innerHTML="";
+  $("h1").textContent="Setup";
+  $("sub").innerHTML=d.loaded?`Fama loaded from <b>${esc(d.loaded)}</b>.`:"Fama not loaded yet: use “Load fama…” with the Fama Tracker.";
+  const crew={};d.players.forEach(p=>{if(CAPS.includes(p.wall))crew[p.wall]=(crew[p.wall]||0)+1});
+  const rows=d.players.map(p=>{const cap=capOf(p.char),ch=now[p.id]-(+p.fama||0);
+    const wall=cap?`<select data-f="wall" data-id="${p.id}"><option value="cap"${p.wall==="cap"?" selected":""}>Captain (${cap})</option><option value="land"${p.wall==="land"?" selected":""}>Land walls</option></select>`
+      :`<select data-f="wall" data-id="${p.id}"><option value="land"${p.wall==="land"?" selected":""}>Land walls</option>${CAPS.map(c=>`<option value="${c}"${p.wall===c?" selected":""}>Ship of ${c}</option>`).join("")}</select>${CAPS.includes(p.wall)&&crew[p.wall]>2?' <span class="warn">ship over 2 crew</span>':""}`;
+    return`<tr class="${p.here?"":"abs"}"><td><input type="checkbox" data-f="here" data-id="${p.id}"${p.here?" checked":""}></td><td>${G(FAC[p.fac]||"")}${esc(p.char)}</td><td>${esc(p.stu)}</td><td><input type="number" data-f="fama" data-id="${p.id}" value="${p.fama}"></td><td class="chg ${ch>0?"pos":ch<0?"neg":""}">${ch>0?"+"+ch:ch<0?"−"+(-ch):"0"}</td><td class="now">${now[p.id]}</td><td>${wall}</td><td><input type="checkbox" data-f="vol" data-id="${p.id}"${p.vol?" checked":""}></td></tr>`}).join("");
+  $("main").className="one";
+  $("main").innerHTML=`<div class="panel"><p style="font-size:17px;margin:0 0 12px">Standard-Bearer’s faction: <select id="sbSel" style="font:inherit"><option value="">none yet</option>${Object.keys(FAC).map(f=>`<option value="${f}"${d.sb===f?" selected":""}>${FACNAME[f]}</option>`).join("")}</select>
+  <span style="color:var(--mute);font-size:15px;margin-left:12px">Crew follow their captain: a ship sails in round 1 only if its captain volunteers.</span></p>
+  <table class="st-t"><tr><th>Here</th><th>Character</th><th>Student</th><th>Start</th><th>Change</th><th>Now</th><th>Wall</th><th>Round 1</th></tr>${rows}</table></div>`;
+  $("sbSel").onchange=e=>{d.sb=e.target.value;save();render()};
+  document.querySelectorAll(".st-t [data-f]").forEach(el=>el.onchange=()=>{const p=P(el.dataset.id),f=el.dataset.f;p[f]=el.type==="checkbox"?el.checked:f==="fama"?(+el.value||0):el.value;save();render()});
+  $("ctx").innerHTML="";
+}
+function render(){
+  $("secSel").value=S.sec;$("setupBtn").classList.toggle("on",S.setup);$("setupBtn").textContent=S.setup?"Setup ◂":"Setup ▸";
+  tabs();
+  if(S.setup)renderSetup();else if(S.tab==="r1")renderRound(1);else if(S.tab==="r2")renderRound(2);else if(S.tab==="r3")renderR3();else renderSack();
+}
+
+/* ---------- controls ---------- */
+function flash(t){$("msg").textContent=t;clearTimeout(flash.t);flash.t=setTimeout(()=>$("msg").textContent="",5000)}
+$("secSel").onchange=e=>{S.sec=e.target.value;save();runClock();render()};
+$("setupBtn").onclick=()=>{S.setup=!S.setup;save();render()};
+$("loadBtn").onclick=()=>$("file").click();
+$("file").onchange=async e=>{const f=e.target.files[0];if(!f)return;
+  try{const wb=XLSX.read(await f.arrayBuffer());const ws=wb.Sheets["Totals"]||wb.Sheets[wb.SheetNames[0]];
+    const aoa=XLSX.utils.sheet_to_json(ws,{header:1,defval:""});const hi=aoa.findIndex(r=>r.includes("Student"));if(hi<0)throw"no Student column";
+    const H=aoa[hi],ix=n=>H.indexOf(n),cS=ix("Section"),cN=ix("Student"),cC=ix("Character"),cF=ix("Faction"),cCur=ix("Current");
+    let n=0;["02","12"].forEach(sec=>{const d=S.data[sec];
+      aoa.slice(hi+1).filter(r=>String(r[cS]).includes(sec)&&r[cN]).forEach(r=>{let p=d.players.find(x=>x.stu===String(r[cN]).trim());
+        if(!p){const ch=String(r[cC]);p={id:sec+"-x"+d.players.length,stu:String(r[cN]).trim(),char:ch,fac:String(r[cF])||"Indeterminate",fama:0,wall:capOf(ch)?"cap":"land",vol:false,here:true};d.players.push(p)}
+        p.fama=+r[cCur]||0;n++});d.loaded=f.name});
+    save();render();flash(`Loaded fama for ${n} students.`)}catch(err){flash("Couldn’t read that file: "+err)}
+  e.target.value=""};
+const csv=rows=>rows.map(r=>r.map(v=>{v=String(v??"");return/[",\n]/.test(v)?`"${v.replace(/"/g,'""')}"`:v}).join(",")).join("\n");
+function ledger(){const dt=new Date(),ds=`${dt.getMonth()+1}/${dt.getDate()}/${dt.getFullYear()}`;return changes(9).map(([id,t,n,why])=>[ds,"Sec "+S.sec,P(id).stu,t,n,why])}
+function ledgerCSV(){return csv([["Date","Section","Student","Type","Amount","Reason"],...ledger()])}
+function sackCSV(){const so=sackOrder();if(!so)return"";const {res}=slots(so.ids),ch=D().sack.ch;
+  return csv([["Order","Student","Character","Group","Region","Place","Code"],...so.ids.map((id,i)=>{const p=P(id),c=ch[id];const rg=c==="X"?"Refuses":c?REG.find(r=>r[0]===c)[1]:"";return[i+1,p.stu,p.char,TIERS[so.tier[id]],rg,c&&c!=="X"&&res[id]?ORD[res[id]-1]:"",c&&c!=="X"&&res[id]?c+res[id]:""]})])}
+function dl(name,text){const a=document.createElement("a");a.href=URL.createObjectURL(new Blob(["﻿"+text],{type:"text/csv"}));a.download=name;a.click()}
+const stamp=()=>new Date().toISOString().slice(0,16).replace(/[-:T]/g,"");
+$("ledgerBtn").onclick=()=>{dl(`Siege_Ledger_Sec${S.sec}_${stamp()}.csv`,ledgerCSV());flash(`${ledger().length} fama rows saved.`)};
+$("sackBtn").onclick=()=>{const t=sackCSV();if(!t){flash("The city hasn’t fallen yet.");return}dl(`Sack_Order_Sec${S.sec}_${stamp()}.csv`,t)};
+$("mailBtn").onclick=async()=>{
+  if(location.protocol==="file:"){flash("Email only works on the Netlify site. Use the CSV buttons here.");return}
+  try{const r=await fetch("/",{method:"POST",headers:{"Content-Type":"application/x-www-form-urlencoded"},body:new URLSearchParams({"form-name":"siege-record",section:"Sec "+S.sec,ledger:ledgerCSV(),sack:sackCSV()||"(city not taken)"}).toString()});
+    if(!r.ok)throw r.status;flash("Sent. Check your email (and Netlify ▸ Forms).")}catch(err){flash("Didn’t send ("+err+"). Download the CSVs instead.")}};
+$("resetBtn").onclick=()=>{if(!confirm(`Erase all siege data for Section ${S.sec}? Fama loaded from the tracker is kept.`))return;const old=D(),n=fresh(S.sec);
+  n.players=old.players.map(p=>({...p}));n.loaded=old.loaded;n.sb=old.sb;S.data[S.sec]=n;S.tab="r1";save();runClock();render()};
+document.addEventListener("keydown",e=>{if(e.target.matches("input,select,textarea"))return;if(e.key==="h"||e.key==="H")$("ctl").classList.toggle("hidden")});
+runClock();render();
+</script>
+
+</body>
+</html>

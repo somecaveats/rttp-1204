@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Sack Decoder</title>
+<style>
+:root{--bg:#F6F1E7;--card:#FFFDF8;--line:#E0D6C2;--navy:#1F2430;--navy2:#2B3040;--text:#2B3040;--mute:#5E6475;--red:#8C2F39;--redbg:#F6E3E5;--win:#2E6B4A;--winbg:#E4F0E8;--amber:#8A5A12;--amberbg:#FBEFD9}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--text);font-family:"IBM Plex Sans",Arial,sans-serif;font-size:15px}
+header{display:flex;align-items:center;gap:14px;padding:12px 24px;background:var(--navy);color:#fff;flex-wrap:wrap}
+header h1{font-family:"EB Garamond",Georgia,serif;font-weight:600;font-size:28px;margin:0}
+header .note{margin-left:auto;font-size:12px;color:#AEB3C2;letter-spacing:.06em;text-transform:uppercase}
+.secsel button{padding:6px 14px;border:1px solid #3A4153;background:var(--navy2);color:#C9CCD6;border-radius:6px;font-weight:600;cursor:pointer;font-size:15px}
+.secsel button.cur{background:var(--red);border-color:var(--red);color:#fff}
+.wrap{padding:16px 24px;max-width:1400px;margin:0 auto}
+.grid2{display:grid;grid-template-columns:2fr 1fr;gap:18px}
+.panel{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:14px 18px;margin-bottom:18px}
+.panel h2{margin:0 0 10px;font-size:13px;letter-spacing:.08em;text-transform:uppercase;color:var(--navy)}
+textarea{width:100%;min-height:190px;font-family:Consolas,monospace;font-size:14px;padding:8px;border:1px solid var(--line);border-radius:6px;background:#fff;color:var(--text)}
+#refusers{min-height:80px}
+.hint{color:var(--mute);font-size:13px;margin:4px 0 8px}
+.btn{padding:8px 16px;border-radius:6px;border:1px solid var(--navy);background:var(--navy);color:#fff;font-weight:600;cursor:pointer;font-size:14px}
+.btn.ghost{background:transparent;color:var(--navy)}
+.btns{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+.msg{padding:6px 10px;border-radius:6px;margin:4px 0;font-size:14px}
+.msg.err{background:var(--redbg);color:var(--red)}
+.msg.warn{background:var(--amberbg);color:var(--amber)}
+.msg.ok{background:var(--winbg);color:var(--win)}
+table{width:100%;border-collapse:collapse;font-size:14px}
+th{text-align:left;font-size:12px;letter-spacing:.05em;text-transform:uppercase;color:var(--mute);border-bottom:2px solid var(--line);padding:6px}
+td{border-bottom:1px solid var(--line);padding:6px;vertical-align:top}
+td.n,th.n{text-align:right;font-variant-numeric:tabular-nums}
+.neg{color:var(--red)}.pos{color:var(--win)}
+.fac{font-size:12px;color:var(--mute)}
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
+.stat{border:1px solid var(--line);border-radius:8px;padding:10px 12px;background:#fff}
+.stat .k{font-size:12px;text-transform:uppercase;letter-spacing:.06em;color:var(--mute)}
+.stat .v{font-size:26px;font-weight:600;color:var(--navy);font-variant-numeric:tabular-nums}
+.stat .s{font-size:13px;color:var(--mute)}
+.bar{height:10px;background:var(--line);border-radius:5px;overflow:hidden;margin-top:6px}
+.bar i{display:block;height:100%;background:var(--navy)}
+.secret{border:2px dashed var(--red)}
+.secret .k{color:var(--red)}
+.paid{color:var(--win)}.unpaid{color:var(--red)}
+.outline{font-family:Georgia,serif;font-size:16px;line-height:1.5}
+.outline h3{font-family:"IBM Plex Sans",Arial,sans-serif;font-size:13px;letter-spacing:.08em;text-transform:uppercase;color:var(--red);margin:16px 0 4px}
+.outline ul{margin:4px 0 8px;padding-left:22px}
+.tag{display:inline-block;font-size:11px;padding:1px 6px;border-radius:8px;background:var(--navy);color:#fff;margin-left:4px;text-transform:uppercase;letter-spacing:.04em}
+.tag.v{background:var(--win)}
+#results{display:none}
+@media (max-width:900px){.grid2{grid-template-columns:1fr}.stats{grid-template-columns:1fr 1fr}}
+@media print{header .secsel,.btns,#inputArea{display:none}.panel{break-inside:avoid}}
+</style>
+</head>
+<body>
+<header>
+  <h1>Sack Decoder</h1>
+  <div class="secsel">Section&nbsp; <button data-s="02">02</button> <button data-s="12">12</button></div>
+  <div class="note">Instructor only · nothing leaves this page</div>
+</header>
+<div class="wrap">
+<div class="grid2" id="inputArea">
+  <div class="panel">
+    <h2>Sack codes</h2>
+    <div class="hint">One per line. A name is optional: <code>Owen: 02G3ABC-150</code> or just <code>02G3ABC-150</code> (the character ID finds the student). The <code>-150</code> is the silver turned in.</div>
+    <textarea id="codes" spellcheck="false" placeholder="Owen: 02G3ABC-150"></textarea>
+    <div class="btns"><button class="btn" id="go">Decode</button><button class="btn ghost" id="clear">Clear</button></div>
+  </div>
+  <div class="panel">
+    <h2>Refusers</h2>
+    <div class="hint">Students who refused to sack, one per line (student or character name). They count in the narration percentages but <b>not</b> in the Venice threshold.</div>
+    <textarea id="refusers" spellcheck="false" placeholder="Najla"></textarea>
+    <div id="msgs"></div>
+  </div>
+</div>
+
+<div id="results">
+  <div class="panel">
+    <h2>The crusade’s totals</h2>
+    <div class="stats" id="stats"></div>
+  </div>
+  <div class="grid2">
+    <div class="panel"><h2>Qualities of the sack <span class="fac" id="denomNote"></span></h2><table id="qual"></table></div>
+    <div class="panel"><h2>Silver and Venice</h2><div id="silver"></div></div>
+  </div>
+  <div class="panel">
+    <h2>Each student</h2>
+    <table id="per"></table>
+    <div class="btns"><button class="btn" id="csv1">Download results CSV</button><button class="btn ghost" id="csv2">Download Fama Tracker CSV</button> <label class="hint">Date for the ledger: <input type="date" id="ldate"></label></div>
+  </div>
+  <div class="panel outline">
+    <h2>Narration outline</h2>
+    <div id="outline"></div>
+  </div>
+</div>
+</div>
+
+<script>
+const CHARS=[[1,"Boniface of Montferrat"],[2,"Enrico Dandolo"],[3,"Baldwin of Flanders"],[4,"Bishop Nivelons of Soissons"],[5,"Robert of Clari"],[6,"Louis of Blois"],[7,"Angelo Falier"],[8,"John Faicete of Acre"],[9,"Hugh of Saint-Pol"],[10,"Anna/Agnes of France"],[11,"Oberto II of Biandrate"],[12,"Martin of Parisis"],[13,"Pantaleone Barbo"],[14,"Theodore Branas"],[15,"Geoffrey of Villehardouin"],[16,"Berthold of Katzenellenbogen"],[17,"Conrad of Halberstadt"],[18,"Marino Zeno"],[19,"Brother Barozzi"],[20,"Henry of Flanders"],[21,"Peter of Luciendo"],[22,"Pietro Steno"],[23,"Renier of Travele"],[24,"Conon of Bethune"],[25,"Raimbaut of Vaquiras"],[26,"Garnier of Troyes"],[27,"Marco Sanudo"],[28,"Othon of La Roche"],[29,"Peter of Amiens"],[30,"William of Arles"],[31,"Andrew Valero"],[32,"Amedee Pofey"],[33,"James of Avesnes"],[34,"Marino Ballaresso"],[35,"Peter of Bethlehem"],[36,"Piere Vidal"],[37,"Milo of Brebant"],[38,"Raveno della Carceri"],[39,"Andrea Balduino"],[40,"Peter of Bracieux"],[41,"Hugh of Saint-Ghislain"],[42,"Andre of Ureboise"],[43,"Guy of Pallavicini"],[44,"Matteo Steno"],[45,"Baldwin of Beauvoir"],[46,"Walon of Dampierre"],[47,"King Lalibela of Ethiopia"],[48,"Walframe of Gemona"],[49,"Eustace of Flanders"],[50,"Warin of Douai"],[51,"Henry of Ulmen"],[52,"Domenico of Constantinople"]];
+const SC={"P1":{"r":"Petrion","p":1,"q":[[["A","Break wine-shop door, kill owner, take wine",10,-2,2],["B","Distribute food to Greeks",0,3,-1],["C","Take spices to resell",15,0,0],["D","Enslave northern importers",20,-1,3]],[["A","Operate shops for profit",12,1,0],["B","Take icons from shops",8,2,1],["C","Start bonfire",0,-3,2],["D","Search for strongboxes",18,0,1]],[["A","Take abbot's icon",5,2,1],["B","Take tiger pelt rug",15,0,0],["C","Take abbot's staff",8,1,0],["D","Take personal crucifix",10,3,2]]]},"P2":{"r":"Petrion","p":2,"q":[[["A","Break wine-shop door, kill owner, take wine",10,-2,2],["B","Distribute food to Greeks",0,3,-1],["C","Take spices to resell",15,0,0],["D","Enslave northern importers",20,-1,3]],[["A","Operate shops for profit",12,1,0],["B","Take icons from shops",8,2,1],["C","Start bonfire",0,-3,2],["D","Search for strongboxes",18,0,1]],[["A","Steal decorations",12,0,1],["B","Swim in underground lake",0,-1,0],["C","Charge Greeks for water",20,-2,2],["D","Search for hidden passages",25,1,0]]]},"P3":{"r":"Petrion","p":3,"q":[[["A","Break wine-shop door, kill owner, take wine",10,-2,2],["B","Distribute food to Greeks",0,3,-1],["C","Take spices to resell",15,0,0],["D","Enslave northern importers",20,-1,3]],[["A","Operate shops for profit",12,1,0],["B","Take icons from shops",8,2,1],["C","Start bonfire",0,-3,2],["D","Search for strongboxes",18,0,1]],[["A","Pray at Constantine's tomb",0,2,-1],["B","Take Constantine's relics",15,5,3],["C","Loot Constantine's personal effects",30,0,2],["D","Sell tomb location to others",10,-2,1]]]},"P4":{"r":"Petrion","p":4,"q":[[["A","Break wine-shop door, kill owner, take wine",50,-2,2],["B","Distribute food to Greeks",0,2,-1],["C","Take spices to resell",100,0,0],["D","Enslave northern importers",150,-1,3]],[["A","Operate shops for profit",50,1,0],["B","Take icons from shops",150,-1,1],["C","Start bonfire",0,-3,2],["D","Search for strongboxes",50,0,1]],[["A","Threaten to burn hospital unless Greeks pay",150,0,1],["B","Charge protection fee to Greeks",100,0,1],["C","Take over monastery as patron",0,2,-2],["D","Take valuable objects from monastery",150,0,0]]]},"P5":{"r":"Petrion","p":5,"q":[[["A","Break wine-shop door, kill owner, take wine",50,-2,2],["B","Distribute food to Greeks",0,2,-1],["C","Take spices to resell",100,0,0],["D","Enslave northern importers",150,-1,3]],[["A","Operate shops for profit",50,1,0],["B","Take icons from shops",150,-1,1],["C","Start bonfire",0,-3,2],["D","Search for strongboxes",50,0,1]],[["A","Pray for Anna Comnena's inspiration",0,2,0],["B","Take Anna Comnena's personal effects",200,0,1],["C","Protect tomb from other looters",0,2,0],["D","Collect relics from princess remains",0,0,0]]]},"P6":{"r":"Petrion","p":6,"q":[[["A","Break wine-shop door, kill owner, take wine",50,-2,2],["B","Distribute food to Greeks",0,2,-1],["C","Take spices to resell",100,0,0],["D","Enslave northern importers",150,-1,3]],[["A","Operate shops for profit",50,1,0],["B","Take icons from shops",150,-1,1],["C","Start bonfire",0,-3,2],["D","Search for strongboxes",50,0,1]],[["A","Shout at peasant attacking monk",100,1,-1],["B","Attack peasant to save monk",200,0,0],["C","Let peasant kill the Greek monk",50,0,1],["D","Help peasant, then attack peasant",100,0,1]]]},"B1":{"r":"Blachernae","p":1,"q":[[["A","Kill Varangian and take his gear",50,0,1],["B","Drive off Varangian, escort monk",0,2,0],["C","Attack Varangian, demand tribute from both",100,0,1],["D","Kill both, take crucifix and gear",150,0,2]],[["A","Escort boy home with valuables",50,2,0],["B","Take loot and enslave boy",150,-1,2],["C","Kill boy, take loot, set fire",0,-3,3],["D","Use boy as hostage/guide",150,-1,1]],[["A","Kill usurper's family",500,0,3],["B","Take them as hostages",0,0,0],["C","Accept bribe for their escape",300,0,0],["D","Let them go free",150,1,-1]]]},"B2":{"r":"Blachernae","p":2,"q":[[["A","Kill Varangian and take his gear",50,0,1],["B","Drive off Varangian, escort monk",0,2,0],["C","Attack Varangian, demand tribute from both",100,0,1],["D","Kill both, take crucifix and gear",150,0,2]],[["A","Escort boy home with valuables",50,2,0],["B","Take loot and enslave boy",150,-1,2],["C","Kill boy, take loot, set fire",0,-3,3],["D","Use boy as hostage/guide",150,-1,1]],[["A","Leave icon, take other objects",100,0,0],["B","Break icon into pieces",0,0,0],["C","Carefully take icon",0,0,0],["D","Pray to protect icon",0,1,-1]]]},"B3":{"r":"Blachernae","p":3,"q":[[["A","Kill Varangian and take his gear",50,0,1],["B","Drive off Varangian, escort monk",0,2,0],["C","Attack Varangian, demand tribute from both",100,0,1],["D","Kill both, take crucifix and gear",150,0,2]],[["A","Escort boy home with valuables",50,2,0],["B","Take loot and enslave boy",150,-1,2],["C","Kill boy, take loot, set fire",0,-3,3],["D","Use boy as hostage/guide",150,-1,1]],[["A","Find Greek to read papers",0,0,0],["B","Burn papers and break chest",250,0,0],["C","Carry chest away",150,0,0],["D","Burn papers, find wine",0,0,0]]]},"B4":{"r":"Blachernae","p":4,"q":[[["A","Kill Varangian and take his gear",50,0,1],["B","Drive off Varangian, escort monk",0,2,0],["C","Attack Varangian, demand tribute from both",100,0,1],["D","Kill both, take crucifix and gear",150,0,2]],[["A","Escort boy home with valuables",50,2,0],["B","Take loot and enslave boy",150,-1,2],["C","Kill boy, take loot, set fire",0,-3,3],["D","Use boy as hostage/guide",150,-1,1]],[["A","Free nobles for treasure locations",450,0,0],["B","Find Alexius IV's cell and loot",100,0,0],["C","Free women and children",0,2,-2],["D","Search for keys to control prison",0,0,0]]]},"B5":{"r":"Blachernae","p":5,"q":[[["A","Kill Varangian and take his gear",50,0,1],["B","Drive off Varangian, escort monk",0,2,0],["C","Attack Varangian, demand tribute from both",100,0,1],["D","Kill both, take crucifix and gear",150,0,2]],[["A","Escort boy home with valuables",50,2,0],["B","Take loot and enslave boy",150,-1,2],["C","Kill boy, take loot, set fire",0,-3,3],["D","Use boy as hostage/guide",150,-1,1]],[["A","Collect tolls from refugees",350,0,2],["B","Claim gatehouse as property",0,0,0],["C","Let refugees pass for free",50,1,-2],["D","Loot gatehouse for arms/cash",50,0,0]]]},"B6":{"r":"Blachernae","p":6,"q":[[["A","Kill Varangian and take his gear",50,0,1],["B","Drive off Varangian, escort monk",0,2,0],["C","Attack Varangian, demand tribute from both",100,0,1],["D","Kill both, take crucifix and gear",150,0,2]],[["A","Escort boy home with valuables",50,2,0],["B","Take loot and enslave boy",150,-1,2],["C","Kill boy, take loot, set fire",0,-3,3],["D","Use boy as hostage/guide",150,-1,1]],[["A","Invite crusaders to feast",0,3,0],["B","Protect palace servants",25,1,-1],["C","Feed refugees",0,2,-3],["D","Eat feast, steal cutlery",250,0,0]]]},"G1":{"r":"Great Palace","p":1,"q":[[["A","Set fire to guard post, loot during panic",100,0,1],["B","Leave them alone",0,0,0],["C","Capture hut, demand ransom",150,0,1],["D","Kill Varangians, enslave watchmen",100,0,2]],[["A","Escort boy home with valuables",50,2,0],["B","Take loot and enslave boy",150,-1,2],["C","Kill boy, take loot, set fire",0,-3,3],["D","Use boy as hostage/guide",150,-1,1]],[["A","Kill Empress Margaret and sons",150,0,3],["B","Keep as hostages, marry empress",0,0,0],["C","Accept bribe, let them go",400,0,0],["D","Promise protection",0,0,-2]]]},"G2":{"r":"Great Palace","p":2,"q":[[["A","Set fire to guard hut, loot during panic",100,0,1],["B","Leave them alone",0,0,0],["C","Capture hut, demand ransom",150,0,1],["D","Kill Varangians, enslave watchmen",100,0,2]],[["A","Escort boy home with valuables",50,2,0],["B","Take loot and enslave boy",150,-1,2],["C","Kill boy, take loot, set fire",0,-3,3],["D","Use boy as hostage/guide",150,-1,1]],[["A","Guard chapel and relics all night",0,3,-2],["B","Take True Cross and Crown of Thorns",0,0,4],["C","Steal gold/silver reliquaries",500,0,2],["D","Take only smaller reliquaries",150,0,0]]]},"G3":{"r":"Great Palace","p":3,"q":[[["A","Set fire to guard hut, loot during panic",100,0,1],["B","Leave them alone",0,0,0],["C","Capture hut, demand ransom",150,0,1],["D","Kill Varangians, enslave watchmen",100,0,2]],[["A","Escort boy home with valuables",50,2,0],["B","Take loot and enslave boy",150,-1,2],["C","Kill boy, take loot, set fire",0,-3,3],["D","Use boy as hostage/guide",150,-1,1]],[["A","Smash throne, steal regalia",500,0,0],["B","Sit on throne, pretend to be emperor",0,0,0],["C","Break throne into pieces",400,0,0],["D","Take regalia for safekeeping",0,0,0]]]},"G4":{"r":"Great Palace","p":4,"q":[[["A","Set fire to guard hut, loot during panic",100,0,1],["B","Leave them alone",0,0,0],["C","Capture hut, demand ransom",150,0,1],["D","Kill Varangians, enslave watchmen",100,0,2]],[["A","Escort boy home with valuables",50,2,0],["B","Take loot and enslave boy",150,-1,2],["C","Kill boy, take loot, set fire",0,-3,3],["D","Use boy as hostage/guide",150,-1,1]],[["A","Smash statues to bits",150,0,0],["B","Pry stones from statues",100,0,0],["C","Stage your own race",100,1,0],["D","Try to remove great column",0,0,0]]]},"G5":{"r":"Great Palace","p":5,"q":[[["A","Set fire to guard hut, loot during panic",100,0,1],["B","Leave them alone",0,0,0],["C","Capture hut, demand ransom",150,0,1],["D","Kill Varangians, enslave watchmen",100,0,2]],[["A","Escort boy home with valuables",50,2,0],["B","Take loot and enslave boy",150,-1,2],["C","Kill boy, take loot, set fire",0,-3,3],["D","Use boy as hostage/guide",150,-1,1]],[["A","Take chalices and small goods",150,0,0],["B","Smash altar for gems/metals",750,0,3],["C","Remove wall decorations",500,0,2],["D","Pray, take nothing",0,1,-1]]]},"G6":{"r":"Great Palace","p":6,"q":[[["A","Set fire to guard hut, loot during panic",100,0,1],["B","Leave them alone",0,0,0],["C","Capture hut, demand ransom",150,0,1],["D","Kill Varangians, enslave watchmen",100,0,2]],[["A","Escort boy home with valuables",50,2,0],["B","Take loot and enslave boy",150,-1,2],["C","Kill boy, take loot, set fire",0,-3,3],["D","Use boy as hostage/guide",150,-1,1]],[["A","Demand prostitute leave holy place",0,1,-1],["B","Salute her and tip well",50,0,0],["C","Ignore her, search for valuables",50,0,0],["D","Proposition the prostitute",-50,0,3]]]},"M1":{"r":"Merchant Quarter","p":1,"q":[[["A","Kill Catalan merchant, burn shop",100,-1,1],["B","Leave shop alone (Christian owner)",0,2,0],["C","Take valuables, advise absolution",100,0,0],["D","Kill owner, ransom wife",150,-1,2]],[["A","Protect priest from looters",50,1,0],["B","Kill priest, take church valuables",200,-3,2],["C","Drive priest out, take vestments",50,-2,1],["D","Take poor-box and vestments",100,0,1]],[["A","Burn mosque with Muslims inside",200,1,3],["B","Guide Muslims out, loot mosque",250,0,0],["C","Rob Muslims and loot mosque",400,0,0],["D","Protect mosque for information",0,2,0]]]},"M2":{"r":"Merchant Quarter","p":2,"q":[[["A","Kill Catalan merchant, burn shop",100,-1,1],["B","Leave shop alone (Christian owner)",0,2,0],["C","Take valuables, advise absolution",100,0,0],["D","Kill owner, ransom wife",150,-1,2]],[["A","Protect priest from looters",50,1,0],["B","Kill priest, take church valuables",200,-3,2],["C","Drive priest out, take vestments",50,-2,1],["D","Take poor-box and vestments",100,0,1]],[["A","Give Venetian storehouse to Doge",50,2,0],["B","Loot storehouse for gold",250,0,0],["C","Loot storehouse for goods",300,0,0],["D","Return storehouse to Venetians",50,3,0]]]},"M3":{"r":"Merchant Quarter","p":3,"q":[[["A","Kill Catalan merchant, burn shop",100,-1,1],["B","Leave shop alone (Christian owner)",0,2,0],["C","Take valuables, advise absolution",100,0,0],["D","Kill owner, ransom wife",150,-1,2]],[["A","Protect priest from looters",50,1,0],["B","Kill priest, take church valuables",200,-3,2],["C","Drive priest out, take vestments",50,-2,1],["D","Take poor-box and vestments",100,0,1]],[["A","Give Genoese storehouse to Doge",50,2,0],["B","Loot storehouse for gold",150,0,0],["C","Loot storehouse for goods",200,0,0],["D","Return storehouse to Genoese",50,1,0]]]},"M4":{"r":"Merchant Quarter","p":4,"q":[[["A","Kill Catalan merchant, burn shop",100,-1,1],["B","Leave shop alone (Christian owner)",0,2,0],["C","Take valuables, advise absolution",100,0,0],["D","Kill owner, ransom wife",150,-1,2]],[["A","Protect priest from looters",50,1,0],["B","Kill priest, take church valuables",200,-3,2],["C","Drive priest out, take vestments",50,-2,1],["D","Take poor-box and vestments",100,0,1]],[["A","Give Pisan storehouse to Doge",50,2,0],["B","Loot storehouse for gold",150,0,0],["C","Loot storehouse for goods",100,0,0],["D","Return storehouse to Pisans",50,1,0]]]},"M5":{"r":"Merchant Quarter","p":5,"q":[[["A","Kill Catalan merchant, burn shop",100,-1,1],["B","Leave shop alone (Christian owner)",0,2,0],["C","Take valuables, advise absolution",100,0,0],["D","Kill owner, ransom wife",150,-1,2]],[["A","Protect priest from looters",50,1,0],["B","Kill priest, take church valuables",200,-3,2],["C","Drive priest out, take vestments",50,-2,1],["D","Take poor-box and vestments",100,0,1]],[["A","Free Amalfitan, follow to treasure (crusade)",0,-1,1],["B","Leave Amalfitan in cell",150,0,0],["C","Question Amalfitan about city",250,0,0],["D","Free Amalfitan, follow to treasure",0,-1,0]]]},"M6":{"r":"Merchant Quarter","p":6,"q":[[["A","Kill Catalan merchant, burn shop",100,-1,1],["B","Leave shop alone (Christian owner)",0,2,0],["C","Take valuables, advise absolution",100,0,0],["D","Kill owner, ransom wife",150,-1,2]],[["A","Protect priest from looters",50,1,0],["B","Kill priest, take church valuables",200,-3,2],["C","Drive priest out, take vestments",50,-2,1],["D","Take poor-box and vestments",100,0,1]],[["A","Take large crate",100,0,0],["B","Take cabinet",0,0,0],["C","Take round box",300,0,0],["D","Take gray jar",300,0,0]]]},"R1":{"r":"Residential Quarter","p":1,"q":[[["A","Drive beggars off, search mansion",100,0,0],["B","Wash feet of beggars",0,2,0],["C","Demand beggars give you their goods",150,-1,1],["D","Kill beggars, search mansion",100,0,1]],[["A","Mediate dispute, take share",50,1,0],["B","Lock them in, set fire to shop",0,-3,2],["C","Kill both, take all coins",50,-1,1],["D","Wait for fight to end, search shop",100,0,0]],[["A","Claim house, search for valuables",400,0,0],["B","Burn house to ground",0,-2,2],["C","Take family as hostages",200,0,1],["D","Turn house into inn, charge refugees",300,0,0]]]},"R2":{"r":"Residential Quarter","p":2,"q":[[["A","Drive beggars off, search mansion",100,0,0],["B","Wash feet of beggars",0,2,0],["C","Demand beggars give you their goods",150,-1,1],["D","Kill beggars, search mansion",100,0,1]],[["A","Mediate dispute, take share",50,1,0],["B","Lock them in, set fire to shop",0,-3,2],["C","Kill both, take all coins",50,-1,1],["D","Wait for fight to end, search shop",100,0,0]],[["A","Accept bribe to leave house alone",200,0,0],["B","Protect house, become patron",0,0,0],["C","Break door, loot house",150,0,0],["D","Break door, take man hostage",0,0,0]]]},"R3":{"r":"Residential Quarter","p":3,"q":[[["A","Drive beggars off, search mansion",100,0,0],["B","Wash feet of beggars",0,2,0],["C","Demand beggars give you their goods",150,-1,1],["D","Kill beggars, search mansion",100,0,1]],[["A","Mediate dispute, take share",50,1,0],["B","Lock them in, set fire to shop",0,-3,2],["C","Kill both, take all coins",50,-1,1],["D","Wait for fight to end, search shop",100,0,0]],[["A","Take purple porphyry statue",250,0,0],["B","Loot shops around forum",150,0,0],["C","Take bronze Theodosius statue",150,0,2],["D","Set up stalls, sell goods",350,0,0]]]},"R4":{"r":"Residential Quarter","p":4,"q":[[["A","Drive beggars off, search mansion",100,0,0],["B","Wash feet of beggars",0,2,0],["C","Demand beggars give you their goods",150,-1,1],["D","Kill beggars, search mansion",100,0,1]],[["A","Mediate dispute, take share",50,1,0],["B","Lock them in, set fire to shop",0,-3,2],["C","Kill both, take all coins",50,-1,1],["D","Wait for fight to end, search shop",100,0,0]],[["A","Claim house as property",0,0,0],["B","Burn house to ground",0,-2,2],["C","Search for owners, take hostage",100,0,1],["D","Turn house into inn, charge refugees",100,0,0]]]},"R5":{"r":"Residential Quarter","p":5,"q":[[["A","Drive beggars off, search mansion",100,0,0],["B","Wash feet of beggars",0,2,0],["C","Demand beggars give you their goods",150,-1,1],["D","Kill beggars, search mansion",100,0,1]],[["A","Mediate dispute, take share",50,1,0],["B","Lock them in, set fire to shop",0,-3,2],["C","Kill both, take all coins",50,-1,1],["D","Wait for fight to end, search shop",100,0,0]],[["A","Abduct children, sell in camp",150,0,4],["B","Burn slave market",0,-2,2],["C","Search master's house",100,0,0],["D","Free the slaves",0,0,-1]]]},"R6":{"r":"Residential Quarter","p":6,"q":[[["A","Drive beggars off, search mansion",100,0,0],["B","Wash feet of beggars",0,2,0],["C","Demand beggars give you their goods",150,-1,1],["D","Kill beggars, search mansion",100,0,1]],[["A","Mediate dispute, take share",50,1,0],["B","Lock them in, set fire to shop",0,-3,2],["C","Kill both, take all coins",50,-1,1],["D","Wait for fight to end, search shop",100,0,0]],[["A","Loot chalices",100,0,0],["B","Take St. Simon relics",0,2,1],["C","Take chalices and relics",100,2,1],["D","Pray, take nothing",0,1,-1]]]}};
+const VOTES={"P3C":"+1 vote, imperial election (Constantine’s ring and sword)","B1B":"+1 committee vote (usurper’s family as hostages)","B2C":"+1 committee vote (icon of the Virgin)","B5B":"+1 committee vote (gatehouse fortress)","G1B":"+2 votes, imperial election, for whoever marries Empress Margaret","G2B":"+2 votes on any committee if not sold (True Cross and Crown of Thorns)","G3A":"+1 vote, imperial election, for whoever holds the crown","G3D":"+1 vote, imperial election, for whoever holds the crown","R2B":"+1 committee vote (Nicetas Choniates as client)"};
+const TAGS={"G6D":["scandalous"],"G6B":["scandalous"],"P2B":["scandalous"],"B1A":["brutal"],"R5A":["brutal"],"P6D":["brutal"],"G2B":["sacrilegious"],"G5B":["sacrilegious","valuable"],"P3B":["sacrilegious","valuable"],"G2C":["sacrilegious"],"G1B":["valuable"],"B1B":["valuable"],"B4A":["valuable"],"G3A":["valuable"],"B5A":["valuable"],"G2A":["heroic"],"B6C":["heroic"],"B6A":["heroic"],"R5D":["heroic"],"P4C":["heroic"]};
+
+const ROSTER={
+ "02":[["Ethan",1],["Brendan",11],["Owen",2],["Stella",7],["Lucinda",15],["Emma",3],["Paddy",6],["Najla",4],["Carlos",8],["Montrell",12],["Alice",5],["Aniela",10],["Neha",14]],
+ "12":[["Cameron",1],["Shrihith",11],["Mark",16],["Ashe",2],["Dary",7],["Sammy",3],["Olivia",6],["Liam",15],["Zoë",4],["Lily",8],["Molly",12],["Mya",5],["Jaclyn",10],["Ava",14]]
+};
+const FACTION={1:"Imperial",11:"Imperial",16:"Imperial",2:"Venetian",7:"Venetian",13:"Venetian",3:"Northern French",6:"Northern French",15:"Northern French",4:"Clerical",8:"Clerical",12:"Clerical",5:"Indeterminate",10:"Indeterminate",14:"Indeterminate"};
+const SHORT={1:"Boniface",11:"Oberto",16:"Berthold",2:"Dandolo",7:"Falier",13:"Barbo",3:"Baldwin",6:"Louis",15:"Geoffrey",4:"Nivelon",8:"John",12:"Martin",5:"Robert",10:"Anna",14:"Branas"};
+const QMAP=[{A:"Violence",B:"Piety",C:"Plunder",D:"Sacrilege"},{A:"Piety",B:"Sacrilege",C:"Violence",D:"Plunder"}];
+const QUALS=["Violence","Piety","Plunder","Sacrilege"];
+const BANDS=[[15,"rare","isolated incidents; most of the city saw little of it"],[30,"scattered","present in some quarters, absent in others"],[45,"common","a real feature of the sack in many districts"],[60,"widespread","the dominant story in much of the city"],[75,"overwhelming","what the Greeks will remember the sack for"],[101,"legendary","a legendarily %q sack; the tale will outlive everyone in the room"]];
+const ADJ={Violence:"violent",Piety:"pious",Plunder:"plunder-happy",Sacrilege:"sacrilegious"};
+const CHARNAME=Object.fromEntries(CHARS);
+let SEC="02";
+try{SEC=localStorage.getItem("sackdec_sec")||"02"}catch(e){}
+const $=id=>document.getElementById(id);
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const norm=s=>s.normalize("NFD").replace(/[̀-ͯ]/g,"").toLowerCase().trim();
+function setSec(s){SEC=s;try{localStorage.setItem("sackdec_sec",s)}catch(e){}document.querySelectorAll(".secsel button").forEach(b=>b.classList.toggle("cur",b.dataset.s===s));if($("results").style.display==="block")decode()}
+document.querySelectorAll(".secsel button").forEach(b=>b.onclick=()=>setSec(b.dataset.s));
+function findStudent(txt){const t=norm(txt);if(!t)return null;const r=ROSTER[SEC];
+ return r.find(([n])=>norm(n)===t)||r.find(([n,id])=>norm(SHORT[id])===t)||r.find(([n,id])=>norm(CHARNAME[id]).includes(t))||null}
+let R=null;
+function decode(){
+ const msgs=[];const rows=[];const seen={};
+ const lines=$("codes").value.split("\n").map(s=>s.trim()).filter(Boolean);
+ lines.forEach((line,i)=>{
+  const L="Line "+(i+1)+": ";
+  let name=null,code=line;
+  const m=line.match(/^(.+?)\s*[:,\t]\s*(\S+)$/)||line.match(/^(.+?)\s+(\d{2}[A-Za-z]\d[A-Za-z]{3}(?:-\d+)?)$/);
+  if(m){name=m[1].trim();code=m[2]}
+  code=code.toUpperCase().replace(/\s/g,"");
+  const parts=code.split("-");const base=parts[0];
+  if(base.length!==7){msgs.push(["err",L+"“"+esc(line)+"” — the code should be 7 characters before the hyphen."]);return}
+  const cid=parseInt(base.slice(0,2),10),scode=base.slice(2,4),ch=base.slice(4).split("");
+  if(!CHARNAME[cid]){msgs.push(["err",L+"no character with ID "+esc(base.slice(0,2))+"."]);return}
+  const sc=SC[scode];if(!sc){msgs.push(["err",L+"unknown sack position “"+esc(scode)+"”."]);return}
+  let marks=0,fama=0,nefas=0,bad=false;const det=[];
+  ch.forEach((l,q)=>{const c=sc.q[q].find(x=>x[0]===l);if(!c){bad=true;return}marks+=c[2];fama+=c[3];nefas+=c[4];det.push(c)});
+  if(bad){msgs.push(["err",L+"choices must be A–D (“"+esc(base.slice(4))+"”)."]);return}
+  const collected=Math.max(0,marks);
+  let turned=null;
+  if(parts.length>1&&parts[1]!==""){turned=parseInt(parts[1],10);if(isNaN(turned)){msgs.push(["err",L+"silver after the hyphen isn’t a number."]);return}
+   if(turned>collected){msgs.push(["warn",L+"turns in "+turned+" but only collected "+collected+"; counted as "+collected+"."]);turned=collected}}
+  else msgs.push(["warn",L+"no silver turned in after the hyphen; counted as 0."]);
+  if(turned===null)turned=0;
+  const r=ROSTER[SEC];const byId=r.find(x=>x[1]===cid);let student=null;
+  if(name){const f=findStudent(name);if(f){student=f[0];if(f[1]!==cid)msgs.push(["warn",L+esc(name)+" plays "+SHORT[f[1]]+", but this code is for "+esc(CHARNAME[cid])+"."])}else{student=name;msgs.push(["warn",L+"“"+esc(name)+"” isn’t on the Section "+SEC+" roster."])}}
+  else if(byId)student=byId[0];
+  else{student="?";msgs.push(["warn",L+esc(CHARNAME[cid])+" isn’t played in Section "+SEC+". Wrong section?"])}
+  if(seen[cid])msgs.push(["warn",L+"a second code for "+esc(CHARNAME[cid])+" (also line "+seen[cid]+")."]);seen[cid]=i+1;
+  const q3=sc.q[2].find(x=>x[0]===ch[2]);
+  rows.push({line:i+1,student,cid,char:CHARNAME[cid],faction:FACTION[cid]||"—",scode,region:sc.r,pos:sc.p,ch,det,marks,collected,turned,kept:collected-turned,fama,nefas,q3:q3[1],votes:VOTES[scode+ch[2]]||"",tags:TAGS[scode+ch[2]]||[],code:base+"-"+turned});
+ });
+ const refusers=[];
+ $("refusers").value.split("\n").map(s=>s.trim()).filter(Boolean).forEach(t=>{const f=findStudent(t);
+  if(f){if(rows.some(r=>r.cid===f[1]))msgs.push(["warn","Refuser “"+esc(t)+"” also submitted a code; counted as a refuser too — check."]);refusers.push({student:f[0],cid:f[1]})}
+  else{refusers.push({student:t,cid:null});msgs.push(["warn","Refuser “"+esc(t)+"” isn’t on the Section "+SEC+" roster; still counted."])}});
+ const done=new Set([...rows.map(r=>r.cid),...refusers.map(r=>r.cid)]);
+ const missing=ROSTER[SEC].filter(([n,id])=>!done.has(id)).map(x=>x[0]);
+ if(missing.length)msgs.push(["warn","No code or refusal yet from: "+missing.map(esc).join(", ")+"."]);
+ if(rows.length&&!msgs.some(m=>m[0]==="err"))msgs.unshift(["ok",rows.length+" code"+(rows.length>1?"s":"")+" decoded, "+refusers.length+" refuser"+(refusers.length===1?"":"s")+"."]);
+ $("msgs").innerHTML=msgs.map(([k,t])=>'<div class="msg '+k+'">'+t+"</div>").join("");
+ R={rows,refusers};render();
+}
+function band(p){return BANDS.find(b=>p<b[0])}
+function render(){
+ const {rows,refusers}=R;$("results").style.display=rows.length||refusers.length?"block":"none";if(!rows.length&&!refusers.length)return;
+ const N=rows.length,denomStudents=N+refusers.length,incidents=denomStudents*2;
+ const cnt={Violence:0,Piety:0,Plunder:0,Sacrilege:0};rows.forEach(r=>{cnt[QMAP[0][r.ch[0]]]++;cnt[QMAP[1][r.ch[1]]]++});
+ const pct=q=>incidents?cnt[q]/incidents*100:0;
+ const tot=rows.reduce((a,r)=>(a.c+=r.collected,a.t+=r.turned,a.k+=r.kept,a.f+=r.fama,a.n+=r.nefas,a),{c:0,t:0,k:0,f:0,n:0});
+ const need=N*100,paid=tot.t>=need,short=Math.max(0,need-tot.t),pot=Math.max(0,tot.t-need);
+ $("stats").innerHTML=
+  stat("Took part",N,refusers.length+" refused · "+denomStudents+" in all")+
+  stat("Silver collected",tot.c,"marks")+
+  stat("Turned in to the pot",tot.t,"marks · "+(tot.c?Math.round(tot.t/tot.c*100):0)+"% of what was taken")+
+  '<div class="stat secret"><div class="k">Total nefas · do not reveal</div><div class="v">'+tot.n+'</div><div class="s">Feeds the endgame outcome</div></div>';
+ $("denomNote").textContent="· "+(cnt.Violence+cnt.Piety+cnt.Plunder+cnt.Sacrilege)+" coded choices ÷ "+incidents+" (2 per student, refusers included)";
+ $("qual").innerHTML="<tr><th>Quality</th><th class=n>Count</th><th class=n>%</th><th>Band</th><th>Cue</th></tr>"+QUALS.map(q=>{const p=pct(q),b=band(p);
+  return "<tr><td><b>"+q+"</b><div class=bar><i style='width:"+Math.min(100,p)+"%'></i></div></td><td class=n>"+cnt[q]+"</td><td class=n>"+p.toFixed(0)+"%</td><td>"+b[1]+"</td><td class=fac>"+b[2].replace("%q",ADJ[q])+"</td></tr>"}).join("");
+ $("silver").innerHTML="<table>"+
+  tr("Owed to Venice (100 × "+N+" who sacked)",need)+tr("Turned in",tot.t)+tr("Kept by individuals",tot.k)+
+  "</table><p style='font-size:20px;margin:12px 0 4px' class='"+(paid?"paid":"unpaid")+"'><b>"+(paid?"Venice is repaid in full.":"Venice is NOT repaid: short "+short+" marks.")+"</b></p>"+
+  (paid?"<p class=hint>"+pot+" marks remain in the pot, to be divided per clause 9 (evenly if the Pact didn’t settle it).</p>":"<p class=hint>Nothing remains in the pot to divide.</p>");
+ const fs=v=>v>0?"<span class=pos>+"+v+"</span>":v<0?"<span class=neg>"+v+"</span>":"0";
+ $("per").innerHTML="<tr><th>Student</th><th>Character</th><th>Position</th><th>Choices</th><th class=n>Collected</th><th class=n>Turned in</th><th class=n>Kept</th><th class=n>Fama</th><th class=n>Nefas</th><th>Q3 outcome</th></tr>"+
+  rows.map(r=>"<tr><td><b>"+esc(r.student)+"</b></td><td>"+esc(r.char)+"<div class=fac>"+esc(r.faction)+"</div></td><td>"+esc(r.region)+" "+r.pos+"</td><td>"+r.ch.join("")+"<div class=fac>"+QMAP[0][r.ch[0]]+", "+QMAP[1][r.ch[1]]+"</div></td><td class=n>"+r.collected+"</td><td class=n>"+r.turned+"</td><td class=n>"+r.kept+"</td><td class=n>"+fs(r.fama)+"</td><td class=n>"+r.nefas+"</td><td>"+esc(r.q3)+(r.votes?"<div><span class='tag v'>"+esc(r.votes)+"</span></div>":"")+r.tags.map(t=>"<span class=tag>"+t+"</span>").join("")+"</td></tr>").join("")+
+  refusers.map(r=>"<tr><td><b>"+esc(r.student)+"</b></td><td>"+(r.cid?esc(CHARNAME[r.cid])+"<div class=fac>"+esc(FACTION[r.cid])+"</div>":"")+"</td><td colspan=8 class=fac>Refused to sack</td></tr>").join("");
+ // outline
+ const order=[...QUALS].sort((a,b)=>pct(b)-pct(a));
+ let o="<h3>1 · The overall picture</h3><ul>"+order.map(q=>"<li><b>"+q+"</b> ("+pct(q).toFixed(0)+"%, "+band(pct(q))[1]+"): "+band(pct(q))[2].replace("%q",ADJ[q])+".</li>").join("")+"</ul>";
+ o+="<p class=hint>Lead with "+order[0].toLowerCase()+"; it defined this sack."+(refusers.length?" "+refusers.length+" crusader"+(refusers.length>1?"s":"")+" refused to take part — say so.":"")+"</p>";
+ o+="<h3>2 · Stories from the city (no names; factions only)</h3>";
+ const byF={};rows.forEach(r=>{(byF[r.faction]=byF[r.faction]||[]).push(r)});
+ const fOrder=["Venetian","Northern French","Imperial","Clerical","Indeterminate"];
+ Object.keys(byF).sort((a,b)=>fOrder.indexOf(a)-fOrder.indexOf(b)).forEach(f=>{
+  o+="<p><b>"+esc({Indeterminate:"Among the unaligned",Venetian:"Among the Venetians",Imperial:"Among the Imperials",Clerical:"Among the clergy","Northern French":"Among the Northern French"}[f]||"Among the "+f)+"</b></p><ul>"+byF[f].map(r=>"<li>In the "+esc(r.region)+": "+esc(r.q3.charAt(0).toLowerCase()+r.q3.slice(1))+"."+(r.tags.length?" <span class=fac>("+r.tags.join(", ")+")</span>":"")+(r.votes?" <span class=fac>— "+esc(r.votes)+"</span>":"")+"</li>").join("")+"</ul>"});
+ o+="<h3>3 · The silver reveal</h3><ul><li>The army carried off "+tot.c+" marks of silver.</li><li>Of that, "+tot.t+" marks ("+(tot.c?Math.round(tot.t/tot.c*100):0)+"%) reached the common pot; "+tot.k+" marks stayed in private hands.</li></ul>";
+ o+="<h3>4 · Venice</h3><ul><li>"+(paid?"The debt is paid: Venice receives its "+need+" marks"+(pot?", and "+pot+" marks remain to divide under clause 9.":", with nothing left over."):"The debt is not paid. Venice needed "+need+" marks and received "+tot.t+"; the army is still "+short+" marks in debt.")+"</li></ul>";
+ o+="<p class=hint>Don’t reveal: individual fama, who did what, or the nefas total ("+tot.n+").</p>";
+ $("outline").innerHTML=o;
+}
+function stat(k,v,s){return '<div class="stat"><div class="k">'+k+'</div><div class="v">'+v+'</div><div class="s">'+s+"</div></div>"}
+function tr(k,v){return "<tr><td>"+k+"</td><td class=n><b>"+v+"</b></td></tr>"}
+function dl(name,rows){const csv=rows.map(r=>r.map(v=>{v=String(v??"");return /[",\n]/.test(v)?'"'+v.replace(/"/g,'""')+'"':v}).join(",")).join("\r\n");
+ const a=document.createElement("a");a.href=URL.createObjectURL(new Blob(["﻿"+csv],{type:"text/csv"}));a.download=name;document.body.appendChild(a);a.click();a.remove()}
+$("go").onclick=decode;
+$("clear").onclick=()=>{$("codes").value="";$("refusers").value="";$("msgs").innerHTML="";$("results").style.display="none";R=null};
+$("csv1").onclick=()=>{if(!R)return;dl("Sack_Results_Sec"+SEC+".csv",[["Section","Student","Character","Faction","Code","Region","Position","Q1","Q2","Q3","Q1 quality","Q2 quality","Silver collected","Silver turned in","Silver kept","Fama","Nefas","Q3 outcome","Extra votes"],
+ ...R.rows.map(r=>[SEC,r.student,r.char,r.faction,r.code,r.region,r.pos,r.ch[0],r.ch[1],r.ch[2],QMAP[0][r.ch[0]],QMAP[1][r.ch[1]],r.collected,r.turned,r.kept,r.fama,r.nefas,r.q3,r.votes]),
+ ...R.refusers.map(r=>[SEC,r.student,r.cid?CHARNAME[r.cid]:"",r.cid?FACTION[r.cid]:"","REFUSED","","","","","","","",0,0,0,0,0,"Refused to sack",""])])};
+$("csv2").onclick=()=>{if(!R)return;const d=$("ldate").value||new Date().toISOString().slice(0,10);
+ dl("Fama_Tracker_Sack_Sec"+SEC+".csv",[["Date","Section","Student","Type","Amount","Reason"],...R.rows.filter(r=>r.fama!==0).map(r=>[d,"Sec "+SEC,r.student,r.fama>0?"Earned":"Penalty",Math.abs(r.fama),"Sack: "+r.region+" pos "+r.pos])])};
+setSec(SEC);
+
+// Handoff from Sack Control (same site): fill in this section's codes and refusers.
+if(/from=control/.test(location.search)){try{const h=JSON.parse(localStorage.getItem("sack_handoff")||"null");
+  if(h&&Date.now()-h.at<10*60*1000){setSec(h.sec);$("codes").value=h.codes.join("\n");$("refusers").value=h.refusers.join("\n");if(h.codes.length)decode()}}catch(e){}}
+</script>
+</body>
+</html>
