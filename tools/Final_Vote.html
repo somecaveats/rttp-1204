@@ -112,6 +112,7 @@ main.one{grid-template-columns:1fr}
 <header><div id="tabs" style="display:flex;gap:6px;flex-wrap:wrap"></div><span class="sec" id="secLab"></span></header>
 <div class="title"><h1 id="h1"></h1><p class="sub" id="sub"></p></div>
 <main id="main"></main>
+<form name="final-vote-record" data-netlify="true" netlify-honeypot="bot-field" hidden><input name="bot-field"><textarea name="record"></textarea></form>
 <div id="ctl">
   <div class="row">
     <span class="lbl">Section</span><select id="secSel"><option>02</option><option>12</option></select>
@@ -119,7 +120,7 @@ main.one{grid-template-columns:1fr}
     <button id="bAtt">Attendance ▸</button>
     <span class="lbl">Parley min</span><input id="parMin" type="number" min="1" max="15" style="width:56px">
     <span class="sep"></span><span id="acts" style="display:flex;gap:8px;align-items:center"></span>
-    <span class="sep"></span><button id="bRecord">⇩ Record CSV</button><button id="bResetVotes">Reset this section</button>
+    <span class="sep"></span><button id="bRecord">⇩ Record CSV</button><button id="bMail" title="Email the record to yourself (Netlify site only)">Email record</button><span id="mailMsg" style="color:#C9A86A;margin-left:6px"></span><button id="bResetVotes">Reset this section</button>
   </div>
   <div class="row hidden" id="attRow">
     <span class="lbl">Present</span><span id="chips" style="display:flex;gap:5px;flex-wrap:wrap"></span>
@@ -317,11 +318,16 @@ $("bAddAm").onclick=()=>{const d=D(),P=curPact(),msg=m=>{$("amMsg").textContent=
   else{const r=c.riders[+ch];a.head=`Clause ${c.n}, ${c.title}: ${act=="strike"?"strike a rider":"restore a failed rider"}`;a.old=act=="strike"?"Rider: "+r.t:"(no such rider)";a.new=act=="strike"?"(rider struck)":"Rider: "+r.t;}
   d.ams.push(a);d.tab="am"+(d.ams.length-1);render();};
 let armed=0;$("bResetVotes").onclick=()=>{if(Date.now()-armed>3000){armed=Date.now();$("bResetVotes").textContent="Click again to reset";setTimeout(()=>$("bResetVotes").textContent="Reset this section",3000);return;}armed=0;const d=D();Object.assign(d,{tab:"pact",v1:{},v1log:null,v2:{},v2log:null,ams:[],parLeft:d.parMin*60});stop();render();};
-$("bRecord").onclick=()=>{const q=v=>{v=v==null?"":String(v);return /[",\n]/.test(v)?'"'+v.replace(/"/g,'""')+'"':v;};const rows=[["section","stage","character","student","faction","vote_or_detail"]];
+function recordCSV(){const q=v=>{v=v==null?"":String(v);return /[",\n]/.test(v)?'"'+v.replace(/"/g,'""')+'"':v;};const rows=[["section","stage","character","student","faction","vote_or_detail"]];
   ["02","12"].forEach(sec=>{const d=A.d[sec];if(!d)return;const fac=ch=>(FAC_OF[ch]=="ind"&&d.fac[ch])||FAC_OF[ch];
     [["first vote",d.v1,d.v1log],["second vote",d.v2,d.v2log]].forEach(([st,v,log])=>{if(!log)return;ROSTER[sec].forEach(([stu,ch])=>rows.push([sec,st,ch,stu,FN[fac(ch)][1],d.absent[ch]?"absent":({y:"aye",n:"nay",a:"abstain"}[v[ch]]||"abstain")]));rows.push([sec,st+" result","","","",`${log.pass?"passed":"failed"} ${log.y}-${log.n}, ${log.a} abstaining`]);});
     d.ams.forEach((a,i)=>rows.push([sec,"amendment "+(i+1),"",a.by,"",`${amShort(a,i)} · ${amStatus(a)} ${a.yes??""}-${a.no??""}`]));});
-  const b=new Blob(["﻿"+rows.map(r=>r.map(q).join(",")).join("\r\n")],{type:"text/csv"});const x=document.createElement("a");x.href=URL.createObjectURL(b);x.download="Final_Vote_Record.csv";document.body.appendChild(x);x.click();x.remove();};
+  return rows.map(r=>r.map(q).join(",")).join("\r\n")}
+$("bRecord").onclick=()=>{const b=new Blob(["﻿"+recordCSV()],{type:"text/csv"});const x=document.createElement("a");x.href=URL.createObjectURL(b);x.download="Final_Vote_Record.csv";document.body.appendChild(x);x.click();x.remove();};
+$("bMail").onclick=async()=>{const msg=m=>{$("mailMsg").textContent=m;setTimeout(()=>$("mailMsg").textContent="",6000)};
+  if(location.protocol==="file:"){msg("Email only works on the Netlify site. Use Record CSV here.");return}
+  try{const r=await fetch("/",{method:"POST",headers:{"Content-Type":"application/x-www-form-urlencoded"},body:new URLSearchParams({"form-name":"final-vote-record",record:recordCSV()}).toString()});
+    if(!r.ok)throw r.status;msg("Sent. Check your email (and Netlify ▸ Forms).")}catch(err){msg("Didn’t send ("+err+"). Use Record CSV instead.")}};
 function showOv(h,p){$("ovH").textContent=h;$("ovP").innerHTML=p;$("overlay").classList.remove("hidden");}
 $("ovB").onclick=()=>$("overlay").classList.add("hidden");
 function stop(){clearInterval(timer);timer=null;}

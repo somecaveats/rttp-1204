@@ -35,13 +35,24 @@ const err = (msg, status = 400) => ({ status, body: { error: msg } });
 const ok = (body) => ({ status: 200, body });
 
 export async function handle(body, store, env) {
-  const { action, sec } = body || {};
+  const { action } = body || {};
   if (action === "admin") return admin(body, store, env);
 
-  if (!env.CLASS_PASSCODE) return err("The site isn’t set up yet: no class passcode.", 500);
-  if ((body.pass || "").trim().toLowerCase() !== env.CLASS_PASSCODE.trim().toLowerCase())
+  // A passcode per section (CLASS_PASSCODE_02, CLASS_PASSCODE_12) picks the section by itself.
+  // A single CLASS_PASSCODE also works, but then students choose their section.
+  const norm = (s) => String(s || "").trim().toLowerCase();
+  const p = norm(body.pass);
+  let sec = null;
+  for (const s of Object.keys(SECTIONS)) if (env["CLASS_PASSCODE_" + s] && p === norm(env["CLASS_PASSCODE_" + s])) sec = s;
+  if (!sec && env.CLASS_PASSCODE && p === norm(env.CLASS_PASSCODE)) {
+    if (!SECTIONS[body.sec]) return ok({ needSection: true });
+    sec = body.sec;
+  }
+  if (!sec) {
+    if (!env.CLASS_PASSCODE && !Object.keys(SECTIONS).some((s) => env["CLASS_PASSCODE_" + s]))
+      return err("The site isn’t set up yet: no class passcode.", 500);
     return err("That passcode isn’t right.", 401);
-  if (!SECTIONS[sec]) return err("Choose your section.");
+  }
 
   if (action === "login") {
     const asg = (await store.get(asgKey(sec), { type: "json" })) || {};
@@ -50,7 +61,7 @@ export async function handle(body, store, env) {
       const r = await store.get(recKey(sec, id), { type: "json" });
       status[id] = asg[id] === "X" ? "refused" : r && r.turnedIn != null ? "done" : r && r.answers.length ? "started" : asg[id] ? "ready" : "waiting";
     }
-    return ok({ status });
+    return ok({ sec, status });
   }
 
   const id = Number(body.charId);

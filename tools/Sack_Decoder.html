@@ -69,7 +69,7 @@ td.n,th.n{text-align:right;font-variant-numeric:tabular-nums}
   </div>
   <div class="panel">
     <h2>Refusers</h2>
-    <div class="hint">Students who refused to sack, one per line (student or character name). They count in the narration percentages but <b>not</b> in the Venice threshold.</div>
+    <div class="hint">Students who refused to sack, one per line (student or character name). They count in the narration percentages. Venice’s debt is 100 marks for every student in the section, refusers included.</div>
     <textarea id="refusers" spellcheck="false" placeholder="Najla"></textarea>
     <div id="msgs"></div>
   </div>
@@ -179,7 +179,7 @@ function render(){
  const cnt={Violence:0,Piety:0,Plunder:0,Sacrilege:0};rows.forEach(r=>{cnt[QMAP[0][r.ch[0]]]++;cnt[QMAP[1][r.ch[1]]]++});
  const pct=q=>incidents?cnt[q]/incidents*100:0;
  const tot=rows.reduce((a,r)=>(a.c+=r.collected,a.t+=r.turned,a.k+=r.kept,a.f+=r.fama,a.n+=r.nefas,a),{c:0,t:0,k:0,f:0,n:0});
- const need=N*100,paid=tot.t>=need,short=Math.max(0,need-tot.t),pot=Math.max(0,tot.t-need);
+ const debtN=ROSTER[SEC].length,need=debtN*100,paid=tot.t>=need,short=Math.max(0,need-tot.t),pot=Math.max(0,tot.t-need);
  $("stats").innerHTML=
   stat("Took part",N,refusers.length+" refused · "+denomStudents+" in all")+
   stat("Silver collected",tot.c,"marks")+
@@ -189,7 +189,7 @@ function render(){
  $("qual").innerHTML="<tr><th>Quality</th><th class=n>Count</th><th class=n>%</th><th>Band</th><th>Cue</th></tr>"+QUALS.map(q=>{const p=pct(q),b=band(p);
   return "<tr><td><b>"+q+"</b><div class=bar><i style='width:"+Math.min(100,p)+"%'></i></div></td><td class=n>"+cnt[q]+"</td><td class=n>"+p.toFixed(0)+"%</td><td>"+b[1]+"</td><td class=fac>"+b[2].replace("%q",ADJ[q])+"</td></tr>"}).join("");
  $("silver").innerHTML="<table>"+
-  tr("Owed to Venice (100 × "+N+" who sacked)",need)+tr("Turned in",tot.t)+tr("Kept by individuals",tot.k)+
+  tr("Owed to Venice (100 × "+debtN+" crusaders in the section)",need)+tr("Turned in",tot.t)+tr("Kept by individuals",tot.k)+
   "</table><p style='font-size:20px;margin:12px 0 4px' class='"+(paid?"paid":"unpaid")+"'><b>"+(paid?"Venice is repaid in full.":"Venice is NOT repaid: short "+short+" marks.")+"</b></p>"+
   (paid?"<p class=hint>"+pot+" marks remain in the pot, to be divided per clause 9 (evenly if the Pact didn’t settle it).</p>":"<p class=hint>Nothing remains in the pot to divide.</p>");
  const fs=v=>v>0?"<span class=pos>+"+v+"</span>":v<0?"<span class=neg>"+v+"</span>":"0";

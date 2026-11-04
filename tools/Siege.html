@@ -114,9 +114,12 @@ input.roll:focus{outline:3px solid #8C93A8}
 .so td.mv button{border:none;background:none;font-size:18px;cursor:pointer;color:var(--mute);padding:0 3px}
 body:not(.ctlon) .so td.mv{display:none}
 .nx{font-size:21px}
-.nx div{display:flex;justify-content:space-between;padding:9px 2px;border-bottom:1px solid var(--line)}
+.nx>div{padding:9px 2px;border-bottom:1px solid var(--line)}
 .nx b{color:var(--navy);font-weight:600}
 .nx .full{color:#A9A9A9}
+
+.nx .top{display:flex;justify-content:space-between}
+.nx .hint{font-size:14px;color:var(--mute);line-height:1.3;margin-top:2px}
 /* setup */
 .st-t{width:100%;border-collapse:collapse;font-size:17px}
 .st-t th{font-size:13px;letter-spacing:.08em;text-transform:uppercase;color:var(--navy);text-align:left;padding:4px 6px;border-bottom:2px solid var(--line)}
@@ -392,7 +395,8 @@ function renderSack(){
     return`<tr class="${band?"band":""}${i===curIdx?" cur":""}"><td class="k"><span>${i+1}</span></td><td class="nm">${who(p,true)}</td><td class="tier">${TIERS[so.tier[id]]}</td>
     <td><select data-id="${id}"><option value="">choose…</option>${REG.map(([k,nm])=>`<option value="${k}"${c===k?" selected":""}${c!==k&&(used[k]||0)>=6?" disabled":""}>${nm}</option>`).join("")}<option value="X"${c==="X"?" selected":""}>Refuses</option></select></td>
     <td class="slot">${c==="X"?'<span style="color:var(--mute)">Refuses</span>':c&&n?`${ORD[n-1]} place<span class="cd">${c}${n}</span>`:""}</td><td class="mv"><button data-u="${i}">▲</button><button data-d="${i}">▼</button></td></tr>`}).join("");
-  const nx=REG.map(([k,nm])=>{const u=used[k]||0;return u>=6?`<div class="full"><span>${nm}</span><span>full</span></div>`:`<div><span>${nm}</span><b>${ORD[u]}</b></div>`}).join("");
+  const HINT={G:"Hagia Sophia, the Hippodrome, the Great Palace and its imperial relics",B:"The emperors’ home and best-defended spot; the icon of the Virgin",M:"Undefended warehouses on the Golden Horn; the mosque and storehouse",P:"The sea-wall fortress, the Pantocrator, the Holy Apostles",R:"Mansions, rubble, and small churches: a forgotten relic or two"};
+  const nx=REG.map(([k,nm])=>{const u=used[k]||0;return`<div class="rg${u>=6?" full":""}"><div class="top"><span>${nm}</span>${u>=6?"<span>full</span>":`<b>${ORD[u]}</b>`}</div><div class="hint">${HINT[k]}</div></div>`}).join("");
   const ref=so.ids.filter(id=>ch[id]==="X").length;
   $("main").className="";$("main").innerHTML=`<div class="panel"><table class="so">${rows}</table></div><div class="panel"><h2>Next available place</h2><div class="nx">${nx}</div>${ref?`<div class="held">Refusing: ${ref}</div>`:""}<div class="keys">Write your region and place on your plan sheet. Sack Worksheets due Tuesday, Nov 10, at 11:59pm.</div></div>`;
   document.querySelectorAll(".so select").forEach(s=>s.onchange=()=>{if(s.value)ch[s.dataset.id]=s.value;else delete ch[s.dataset.id];save();render()});

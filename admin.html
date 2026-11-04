@@ -94,7 +94,7 @@ function render(){
   document.querySelectorAll("[data-s]").forEach(b=>b.classList.toggle("on",b.dataset.s===sec));
   const asg=draft||data.assign,ids=SECTIONS[sec];
   const n={done:0,prog:0,wait:0,ref:0};ids.forEach(id=>n[statusOf(id)[0]]++);
-  const pot=ids.reduce((s,id)=>s+(data.recs[id]&&data.recs[id].turnedIn||0),0),need=(ids.length-n.ref)*100;
+  const pot=ids.reduce((s,id)=>s+(data.recs[id]&&data.recs[id].turnedIn||0),0),need=ids.length*100;
   $("sum").innerHTML=`<div class="g"><div class="n">${n.done}</div><div class="l">done</div></div><div class="a"><div class="n">${n.prog}</div><div class="l">in progress</div></div><div><div class="n">${n.wait}</div><div class="l">not started</div></div><div class="r"><div class="n">${n.ref}</div><div class="l">refused</div></div><div><div class="n">${pot}</div><div class="l">marks turned in so far (Venice needs ${need})</div></div>`;
   // which places are used, to flag duplicates
   const used={};ids.forEach(id=>{const p=asg[id];if(p&&p!=="X")used[p]=(used[p]||0)+1});

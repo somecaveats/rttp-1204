@@ -15,7 +15,7 @@ main{max-width:720px;margin:0 auto;padding:20px 16px 60px}
 h1{font-family:"EB Garamond",Georgia,serif;font-weight:600;color:var(--navy);font-size:40px;line-height:1.1;margin:8px 0 6px}
 h2{font-family:"EB Garamond",Georgia,serif;font-weight:600;color:var(--navy);font-size:28px;margin:0 0 10px}
 .sub{color:var(--mute);margin:0 0 18px}
-.card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:18px 18px;margin-bottom:16px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:18px 18px 16px;margin-bottom:16px}
 label{display:block;font-weight:600;color:var(--navy);margin:12px 0 6px}
 input[type=text],input[type=password],input[type=number],select{width:100%;font:inherit;padding:10px 12px;border:1px solid var(--line);border-radius:8px;background:#fff;color:var(--navy)}
 .seg{display:flex;gap:8px}
@@ -24,12 +24,20 @@ button{font:inherit;font-weight:600;padding:12px 16px;border-radius:8px;border:1
 button.primary{background:var(--navy);color:#fff}
 button.on{background:var(--navy);color:#fff}
 button:disabled{opacity:.45;cursor:not-allowed}
-.row{display:flex;gap:10px;flex-wrap:wrap;margin-top:16px}
-.err{color:var(--red);font-weight:600;margin-top:10px;min-height:1.2em}
-.chars{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:10px;margin-top:6px}
-.ch{text-align:left;padding:12px 14px;border:1px solid var(--line);font-weight:500;display:flex;justify-content:space-between;gap:8px;align-items:center}
-.ch .tag{font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:var(--mute);font-weight:600}
-.ch.done{color:#A9A9A9}.ch.done .tag{color:var(--win)}
+.row{display:flex;gap:10px;flex-wrap:wrap;margin-top:16px;justify-content:flex-end;align-items:center}
+.row.left{justify-content:flex-start}
+.err{color:var(--red);font-weight:600;margin-top:8px}
+.err:empty{display:none}
+.chars{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin-top:6px}
+@media(max-width:380px){.chars{grid-template-columns:1fr}}
+.ch{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:9px 12px 9px 14px;border:1px solid var(--line);border-radius:24px;background:#fff;font-weight:500;font-size:17px;color:var(--navy);text-align:left;min-width:0}
+.ch:hover{border-color:var(--navy)}
+.ch .nm{display:flex;align-items:center;gap:6px;min-width:0}
+.ch .nm span:last-child{line-height:1.2}
+.glyph{font-family:"Segoe UI Symbol","Noto Sans Symbols 2","DejaVu Sans",sans-serif;font-weight:400;flex:none}
+.ch .tag{flex:none;font-size:11px;letter-spacing:.06em;text-transform:uppercase;font-weight:600;padding:2px 8px;border-radius:10px}
+.ch.done{color:#9A9A9A;border-color:var(--line)}.ch.done .tag{background:var(--winbg);color:var(--win)}
+.ch.started .tag{background:var(--amberbg);color:var(--amber)}.ch.refused .tag{background:var(--redbg);color:var(--red)}
 .place{font-family:"EB Garamond",Georgia,serif;font-size:30px;color:var(--navy);font-weight:600;line-height:1.15}
 .place small{display:block;font-family:"IBM Plex Sans",Arial,sans-serif;font-size:14px;color:var(--mute);font-weight:500;letter-spacing:.04em}
 .qnum{font-size:13px;letter-spacing:.08em;text-transform:uppercase;color:var(--mute);font-weight:600;margin-bottom:6px}
@@ -37,7 +45,7 @@ button:disabled{opacity:.45;cursor:not-allowed}
 .choice{display:flex;gap:12px;align-items:flex-start;text-align:left;width:100%;margin:0 0 8px;padding:12px 14px;border:1px solid var(--line);font-weight:400;color:var(--text);background:#fff}
 .choice .l{flex:none;width:30px;height:30px;border-radius:15px;background:var(--navy);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:600}
 .choice.sel{border:2px solid var(--navy);background:#EEF0F4}
-.lockbar{position:sticky;bottom:0;background:var(--card);padding:12px 0 4px;margin-top:6px}
+.lockbar{position:sticky;bottom:0;background:var(--card);padding:10px 0 0;margin-top:6px;display:flex;flex-direction:column;align-items:flex-end}
 .narr{font-family:"EB Garamond",Georgia,serif;font-size:20px;line-height:1.45;color:var(--navy);border-left:4px solid var(--amber);padding:4px 0 4px 14px;margin:0}
 .past{font-size:15px;color:var(--mute);margin-bottom:10px}
 .past b{color:var(--navy)}
@@ -48,6 +56,8 @@ button:disabled{opacity:.45;cursor:not-allowed}
 .code{font-family:"IBM Plex Sans",monospace;font-size:34px;font-weight:600;letter-spacing:.06em;color:var(--navy);background:var(--amberbg);border:2px dashed var(--amber);border-radius:10px;padding:14px;text-align:center;margin:10px 0}
 .note{font-size:15px;color:var(--mute)}
 .warn{background:var(--amberbg);border:1px solid var(--amber);color:var(--amber);border-radius:8px;padding:10px 12px;font-size:15px;font-weight:500}
+.youare{font-family:"EB Garamond",Georgia,serif;font-size:30px;line-height:1.3;color:var(--navy);margin:0 0 14px}
+.youare b{color:var(--red);font-weight:600}
 .hidden{display:none!important}
 </style>
 </head>
@@ -59,6 +69,9 @@ button:disabled{opacity:.45;cursor:not-allowed}
 const CHARS={1:"Boniface of Montferrat",11:"Oberto of Biandrate",16:"Berthold of Katzenelnbogen",2:"Enrico Dandolo",7:"Angelo Falier",3:"Baldwin of Flanders",6:"Louis of Blois",15:"Geoffrey of Villehardouin",4:"Nivelon of Soissons",8:"John of Noyon",12:"Martin of Pairis",5:"Robert of Clari",10:"Empress Anna",14:"Theodore Branas"};
 const SECTIONS={"02":[1,11,2,7,15,3,6,4,8,12,5,10,14],"12":[1,11,16,2,7,3,6,15,4,8,12,5,10,14]};
 const ORD=["1st","2nd","3rd","4th","5th","6th"];
+const THE={G:"the Great Palace",B:"the Blachernae Palace",M:"the Merchant’s Quarter",P:"the Petrion District",R:"the Greek Residential Quarter"};
+const FACG={1:"♛",11:"♛",16:"♛",2:"⚓",7:"⚓",3:"⚜",6:"⚜",15:"⚜",4:"☩",8:"☩",12:"☩",5:"⚖",10:"⚖",14:"⚖"};
+const G=id=>`<span class="glyph">${FACG[id]}\uFE0E</span>`;
 const $=id=>document.getElementById(id);
 const esc=s=>String(s??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 let S={pass:"",sec:"",charId:null,state:null,status:{}};
@@ -72,24 +85,28 @@ async function api(body){
 const placeName=p=>`${REGIONS[p[0]]}, ${ORD[+p[1]-1]} place`;
 const setWho=()=>{$("who").textContent=S.charId?`${CHARS[S.charId]} · Section ${S.sec}`:""};
 
-function screenLogin(msg){
+function screenLogin(msg,needSec){
   setWho();
   $("app").innerHTML=`<h1>The Sack of Constantinople</h1><p class="sub">The city has fallen. Sign in to begin your part in the sack.</p>
   <div class="card"><label for="pc">Class passcode</label><input id="pc" type="password" autocomplete="off" value="${esc(S.pass)}">
-  <label>Your section</label><div class="seg"><button data-s="02" class="${S.sec==="02"?"on":""}">Section 02</button><button data-s="12" class="${S.sec==="12"?"on":""}">Section 12</button></div>
+  <div class="${needSec?"":"hidden"}"><label>Your section</label><div class="seg"><button data-s="02" class="${S.sec==="02"?"on":""}">Section 02</button><button data-s="12" class="${S.sec==="12"?"on":""}">Section 12</button></div></div>
   <div class="row"><button class="primary" id="go">Continue</button></div><div class="err" id="err">${esc(msg||"")}</div></div>`;
   document.querySelectorAll("[data-s]").forEach(b=>b.onclick=()=>{S.sec=b.dataset.s;document.querySelectorAll("[data-s]").forEach(x=>x.classList.toggle("on",x===b))});
   $("pc").onkeydown=e=>{if(e.key==="Enter")$("go").click()};
-  $("go").onclick=async()=>{S.pass=$("pc").value.trim();if(!S.pass||!S.sec){$("err").textContent="Enter the passcode and choose your section.";return}
-    $("go").disabled=true;try{const j=await api({action:"login",charId:null});S.status=j.status;keep();screenChars()}catch(e){$("err").textContent=e.message;$("go").disabled=false}}}
+  $("go").onclick=async()=>{S.pass=$("pc").value.trim();if(!S.pass){$("err").textContent="Enter the class passcode.";return}
+    if(needSec&&!S.sec){$("err").textContent="Choose your section.";return}
+    if(!needSec)S.sec="";
+    $("go").disabled=true;try{const j=await api({action:"login",charId:null});
+      if(j.needSection){screenLogin("",true);return}
+      S.sec=j.sec;S.status=j.status;keep();screenChars()}catch(e){$("err").textContent=e.message;$("go").disabled=false}}}
 
 function screenChars(){
   S.charId=null;keep();setWho();
   const tag={done:"Done",started:"In progress",refused:"Refused",ready:"",waiting:""};
   $("app").innerHTML=`<h1>Who are you?</h1><p class="sub">Choose your character in Section ${S.sec}.</p>
-  <div class="chars">${SECTIONS[S.sec].map(id=>{const st=S.status[id]||"waiting";return`<button class="ch ${st}" data-id="${id}"><span>${CHARS[id]}</span><span class="tag">${tag[st]||""}</span></button>`}).join("")}</div>
-  <div class="row"><button id="back">◂ Back</button></div><div class="err" id="err"></div>`;
-  $("back").onclick=()=>screenLogin();
+  <div class="chars">${SECTIONS[S.sec].map(id=>{const st=S.status[id]||"waiting";return`<button class="ch ${st}" data-id="${id}"><span class="nm">${G(id)}<span>${CHARS[id]}</span></span>${tag[st]?`<span class="tag">${tag[st]}</span>`:""}</button>`}).join("")}</div>
+  <div class="row left"><button id="back">◂ Back</button></div><div class="err" id="err"></div>`;
+  $("back").onclick=()=>{S.sec="";keep();screenLogin()};
   document.querySelectorAll(".ch").forEach(b=>b.onclick=()=>{S.charId=+b.dataset.id;keep();load()})}
 
 async function load(){
@@ -107,7 +124,7 @@ function route(){
   return screenTurnIn()}
 
 function screenMsg(title,text,retry){
-  $("app").innerHTML=`<h1>${esc(title)}</h1><div class="card"><p>${esc(text)}</p><div class="row">${retry?'<button class="primary" id="again">Check again</button>':""}<button id="back">◂ Not you? Choose again</button></div></div>`;
+  $("app").innerHTML=`<h1>${esc(title)}</h1><div class="card"><p>${esc(text)}</p><div class="row"><button id="back">◂ Not you? Choose again</button>${retry?'<button class="primary" id="again">Check again</button>':""}</div></div>`;
   if(retry)$("again").onclick=load;$("back").onclick=refreshChars}
 
 async function refreshChars(){try{const j=await api({action:"login",charId:null});S.status=j.status}catch(e){}screenChars()}
@@ -115,10 +132,10 @@ async function refreshChars(){try{const j=await api({action:"login",charId:null}
 function screenConfirm(){
   const p=S.state.place;
   $("app").innerHTML=`<h1>Is this you?</h1><div class="card">
-  <p style="margin-top:0">You are <b>${esc(CHARS[S.charId])}</b>, Section ${S.sec}.</p>
-  <div class="place">${esc(placeName(p))}<small>Your place in the sack · code ${p}</small></div>
+  <p class="youare">You are <b>${esc(CHARS[S.charId])}</b> of Section ${S.sec}, and you are sacking <b>${esc(THE[p[0]])}</b>, ${ORD[+p[1]-1]} place.</p>
+  <p class="note" style="margin:0">Your place code is <b>${p}</b>.</p>
   <p class="warn" style="margin-top:16px">Once you begin, each choice is final. You can’t go back or change an answer, even if you reload the page.</p>
-  <div class="row"><button class="primary" id="yes">Yes, begin the sack</button><button id="no">◂ That’s not me</button></div></div>`;
+  <div class="row"><button id="no">◂ That’s not me</button><button class="primary" id="yes">Yes, begin the sack</button></div></div>`;
   $("yes").onclick=()=>{S.confirmed=true;screenQuestion()};$("no").onclick=refreshChars}
 
 function pastHtml(){
@@ -149,7 +166,7 @@ function screenTurnIn(){
   $("app").innerHTML=`<h1>Back at the camp</h1>${pastHtml()}
   <div class="card"><h2>Your plunder</h2>
   <div class="stats"><div class="stat"><div class="n">${st.collected}</div><div class="l">marks of silver collected</div></div><div class="stat"><div class="n">${st.fama>0?"+":""}${st.fama}</div><div class="l">fama from your choices</div></div></div>
-  <p>The Pact requires plunder to go into the common pot. Venice is repaid first, and it’s repaid in full only if the pot reaches <b>100 marks for every crusader</b>. What isn’t needed for Venice is divided as the Pact says. Whatever you keep, you keep.</p>
+  <p>The Pact requires plunder to go into the common pot. Venice is repaid first, and it’s repaid in full only if the pot reaches <b>100 marks for every crusader in your section</b>, whether or not they took part. What isn’t needed for Venice is divided as the Pact says. Whatever you keep, you keep.</p>
   <label for="amt">How many marks do you turn in? (0 to ${st.collected})</label><input id="amt" type="number" min="0" max="${st.collected}" step="1" inputmode="numeric">
   <div class="row"><button class="primary" id="sub">Turn in</button></div><div class="err" id="err"></div></div>`;
   $("sub").onclick=async()=>{const v=$("amt").value.trim();const n=Number(v);
