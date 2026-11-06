@@ -194,20 +194,21 @@ const short=c=>{c=c||"";const m=NAMES.find(([k])=>c.includes(k));return m?m[1]:c
 const fullCap=k=>{const p=D().players.find(x=>capOf(x.char)===k);return p?p.char:k};
 const capOf=c=>CAPS.find(k=>new RegExp(k).test(c||""))||null;
 
-function fresh(sec){return{players:ROSTER[sec].map(([s,id],i)=>({id:sec+"-"+i,stu:s,char:CHAR[id][0],fac:CHAR[id][1],fama:0,wall:capOf(CHAR[id][0])?"cap":"land",vol:false,here:true})),sb:"",loaded:"",rounds:{1:{step:1,r:{}},2:{step:1,r:{}}},r3:{deal:"",pl:{},done:false,lost:false,clock:180,run:false},sack:{order:null,ch:{}}}}
+function fresh(sec){return{players:ROSTER[sec].map(([s,id],i)=>({id:sec+"-"+i,stu:s,char:CHAR[id][0],fac:CHAR[id][1],fama:0,wall:capOf(CHAR[id][0])?"cap":"land",vol:false,here:true})),sb:[],loaded:"",rounds:{1:{step:1,r:{}},2:{step:1,r:{}}},r3:{deal:"",pl:{},done:false,lost:false,clock:180,run:false},sack:{order:null,ch:{}}}}
 let S={sec:"02",tab:"r1",setup:false,data:{}};
 try{const x=JSON.parse(localStorage.getItem("siege1"));if(x&&x.data)S=x}catch(e){}
 ["02","12"].forEach(s=>{if(!S.data[s])S.data[s]=fresh(s)});
 const save=()=>{try{localStorage.setItem("siege1",JSON.stringify(S))}catch(e){}};
 const D=()=>S.data[S.sec];
 const P=id=>D().players.find(p=>p.id===id);
-const sbOf=p=>D().sb&&p.fac===D().sb?1:0;
+const sbList=()=>{const v=D().sb;return Array.isArray(v)?v:(v?[v]:[])};
+const sbOf=p=>sbList().includes(p.fac)?1:0;
 
 /* ---------- fama: every change, in order ---------- */
 // changes(upto): fama changes from rounds before `upto` (9 = everything)
 function changes(upto=9){
   const out=[],d=D();
-  const spends=R=>{const e=evalRound(R);e.parts.forEach(x=>[1,2,3].forEach(k=>{const c=cell(R,x.p.id,k);if(+c.sp)out.push([x.p.id,"Spent",SPCOST[+c.sp],`Siege round ${R}, step ${k}: +${c.sp} to roll`])}));
+  const spends=R=>{const e=evalRound(R);e.parts.forEach(x=>[1,2,3].forEach(k=>{const c=cell(R,x.p.id,k);if(+c.sp)out.push([x.p.id,"Spent",SPCOST[+c.sp],(k===1&&x.ship&&x.p.wall!=="cap")?`Siege round ${R}: +${c.sp} to the sailing roll`:`Siege round ${R}, step ${k}: +${c.sp} to roll`])}));
     e.parts.forEach(x=>{if(e.st[x.p.id].s1==="s")out.push([x.p.id,"Penalty",1,`Siege round ${R}: ship sank`])});return e};
   if(upto<=1)return out;
   const e1=spends(1);
@@ -242,7 +243,7 @@ function evalRound(R){
   const st={};parts.forEach(x=>st[x.p.id]={x,tot:{}});
   const tot=(id,k)=>{const c=cell(R,id,k);if(c.roll==null||c.roll==="")return null;return{raw:+c.roll,t:+c.roll+(+c.sp||0)+sbOf(P(id))}};
   const pass=(r,need,p)=>r.t>=need&&!(r.raw===1&&!sbOf(p));
-  shipList.forEach(s=>{const cap=s.m[0],r=tot(cap.p.id,1);s.m.forEach(x=>{const o=st[x.p.id];o.s1=r?(r.t>=2?"y":"s"):null;if(x===cap&&r)o.tot[1]=r.t})});
+  shipList.forEach(s=>{const cap=s.m[0],r0=tot(cap.p.id,1),cb=s.m.slice(1).reduce((a,x)=>a+(+cell(R,x.p.id,1).sp||0),0),r=r0?{raw:r0.raw,t:r0.t+cb}:null;s.cb=cb;s.m.forEach(x=>{const o=st[x.p.id];o.s1=r?(r.t>=2?"y":"s"):null;if(x===cap&&r)o.tot[1]=r.t})});
   land.forEach(x=>{const r=tot(x.p.id,1),o=st[x.p.id];if(r){o.tot[1]=r.t;o.s1=pass(r,5,x.p)?"y":"n"}else o.s1=null});
   parts.forEach(x=>{const o=st[x.p.id];if(o.s1!=="y")return;const r=tot(x.p.id,2);if(r){o.tot[2]=r.t;o.s2=pass(r,6,x.p)?"y":"n"}else o.s2=null});
   const grpN={land:0,sea:0},pend2={land:false,sea:false};
@@ -309,8 +310,9 @@ function renderRound(R){
   const head=`<tr><th class="l">Attacker</th><th>Spend</th><th>Roll</th><th>Bonus</th><th>Total</th><th>Result</th></tr>`;
   const row=(x,isCap,crew)=>{const p=x.p,o=e.st[p.id];
     const won=k===3&&e.first===p.id&&e.outcome==="fell";let cls=(crew?"crew":"")+(won?" won":"");
-    if(k===1&&x.ship&&!isCap)return`<tr class="${cls}"><td class="nm">${who(p)}</td><td colspan="4" class="with">sails with the captain</td><td>${resTxt(o.s1)}</td></tr>`;
-    const c=cell(R,p.id,k),b=(+c.sp||0)+sbOf(p),t=o.tot[k];
+    if(k===1&&x.ship&&!isCap)return`<tr class="${cls}"><td class="nm">${who(p)}</td><td>${spendSel(R,p,k,now)}</td><td colspan="3" class="with">sails with the captain${+cell(R,p.id,1).sp?" · adds to the sailing roll":""}</td><td>${resTxt(o.s1)}</td></tr>`;
+    const shipCb=k===1&&isCap&&x.ship?((e.ships.find(s=>s.k===x.ship)||{}).cb||0):0;
+    const c=cell(R,p.id,k),b=(+c.sp||0)+sbOf(p)+shipCb,t=o.tot[k];
     const pickBtn=k===3&&e.tieFirst&&e.tieFirst.includes(p.id)&&e.first!==p.id?`<button class="pick" data-pick="${p.id}">First in</button>`:"";
     return`<tr class="${cls}"><td class="nm">${who(p)}</td><td>${spendSel(R,p,k,now)}</td><td>${rollIn(R,p,k)}</td><td class="bon">${b?"+"+b:""}</td><td class="tot">${t??""}</td><td>${resTxt(o[key],won)}${pickBtn}</td></tr>`};
   const grp=t=>`<tr class="grp"><td colspan="6">${t}</td></tr>`;
@@ -338,7 +340,7 @@ function renderRound(R){
   if(!e.outcome&&e.parts.some(x=>e.st[x.p.id].s1!=null)){const stepOf=x=>{const o=e.st[x.p.id];return o.s1==null?1:(o.s1==="y"&&o.s2==null)?2:(o.s2==="y"&&o.s3==null)?3:0};const wait=e.parts.filter(x=>{const o=e.st[x.p.id],n=stepOf(x);if(!n||n>k)return false;return(o.s1==null&&(!x.ship||e.ships.find(s=>s.k===x.ship).m[0]===x))||(o.s1==="y"&&o.s2==null)||(o.s2==="y"&&o.s3==null)});
     if(wait.length)rp+=`<div class="held" style="margin:0 0 10px"><b>Still to roll:</b> ${wait.map(x=>{const o=e.st[x.p.id];return esc(short(x.p.char))+` (step ${o.s1==null?1:o.s2==null?2:3})`}).join(", ")}</div>`}
   if(R===1){const held=d.players.filter(p=>p.here&&!e.parts.some(x=>x.p.id===p.id));if(held.length)rp+=`<div class="held"><b>Holding back:</b> ${held.map(p=>esc(short(p.char))).join(", ")}</div>`}
-  rp+=`<div class="keys">${k>1?"<b>A 1 always fails</b> on a wall roll, unless ⚑.<br>":""}<span class="sbf" style="margin:0">${G("⚑")}</span><b>Standard-Bearer${d.sb?` (${FACNAME[d.sb]})`:""}:</b> +1 to every roll<br><b>Spend:</b> +1 for 1 fama · +2 for 4 fama, before the roll</div>`;
+  rp+=`<div class="keys">${k>1?"<b>A 1 always fails</b> on a wall roll, unless ⚑.<br>":""}<span class="sbf" style="margin:0">${G("⚑")}</span><b>Standard-Bearer${sbList().length?` (${sbList().map(f=>FACNAME[f]).join(" & ")})`:""}:</b> +1 to every roll<br><b>Spend:</b> +1 for 1 fama · +2 for 4 fama, before the roll${k===1&&e.ships.length?"<br><b>Crew</b> may spend fama to add to their captain’s sailing roll":""}</div>`;
   $("main").className="";$("main").innerHTML=`<div class="panel"><table class="at">${cols}${head}${rows}</table></div><div class="panel">${rp}</div>`;
   wireRolls();
   document.querySelectorAll("button.pick").forEach(b=>b.onclick=()=>{rd.firstPick=b.dataset.pick;save();render()});
@@ -430,10 +432,10 @@ function renderSetup(){
       :`<select data-f="wall" data-id="${p.id}"><option value="land"${p.wall==="land"?" selected":""}>Land walls</option>${CAPS.map(c=>`<option value="${c}"${p.wall===c?" selected":""}>Ship of ${c}</option>`).join("")}</select>${CAPS.includes(p.wall)&&crew[p.wall]>2?' <span class="warn">ship over 2 crew</span>':""}`;
     return`<tr class="${p.here?"":"abs"}"><td><input type="checkbox" data-f="here" data-id="${p.id}"${p.here?" checked":""}></td><td>${G(FAC[p.fac]||"")}${esc(p.char)}</td><td>${esc(p.stu)}</td><td><input type="number" data-f="fama" data-id="${p.id}" value="${p.fama}"></td><td class="chg ${ch>0?"pos":ch<0?"neg":""}">${ch>0?"+"+ch:ch<0?"−"+(-ch):"0"}</td><td class="now">${now[p.id]}</td><td>${wall}</td><td><input type="checkbox" data-f="vol" data-id="${p.id}"${p.vol?" checked":""}></td></tr>`}).join("");
   $("main").className="one";
-  $("main").innerHTML=`<div class="panel"><p style="font-size:17px;margin:0 0 12px">Standard-Bearer’s faction: <select id="sbSel" style="font:inherit"><option value="">none yet</option>${Object.keys(FAC).map(f=>`<option value="${f}"${d.sb===f?" selected":""}>${FACNAME[f]}</option>`).join("")}</select>
+  $("main").innerHTML=`<div class="panel"><p style="font-size:17px;margin:0 0 12px">Standard-Bearer’s faction(s): ${Object.keys(FAC).map(f=>`<label style="margin-right:14px;white-space:nowrap"><input type="checkbox" class="sbChk" value="${f}"${sbList().includes(f)?" checked":""}> ${FACNAME[f]}</label>`).join("")}
   <span style="color:var(--mute);font-size:15px;margin-left:12px">Crew follow their captain: a ship sails in round 1 only if its captain volunteers.</span></p>
   <table class="st-t"><tr><th>Here</th><th>Character</th><th>Student</th><th>Start</th><th>Change</th><th>Now</th><th>Wall</th><th>Round 1</th></tr>${rows}</table></div>`;
-  $("sbSel").onchange=e=>{d.sb=e.target.value;save();render()};
+  document.querySelectorAll(".sbChk").forEach(c=>c.onchange=()=>{d.sb=[...document.querySelectorAll(".sbChk:checked")].map(x=>x.value);save();render()});
   document.querySelectorAll(".st-t [data-f]").forEach(el=>el.onchange=()=>{const p=P(el.dataset.id),f=el.dataset.f;p[f]=el.type==="checkbox"?el.checked:f==="fama"?(+el.value||0):el.value;save();render()});
   $("ctx").innerHTML="";
 }
