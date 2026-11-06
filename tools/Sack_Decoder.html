@@ -106,6 +106,8 @@ const ROSTER={
  "02":[["Ethan",1],["Brendan",11],["Owen",2],["Stella",7],["Lucinda",15],["Emma",3],["Paddy",6],["Najla",4],["Carlos",8],["Montrell",12],["Alice",5],["Aniela",10],["Neha",14]],
  "12":[["Cameron",1],["Shrihith",11],["Mark",16],["Ashe",2],["Dary",7],["Sammy",3],["Olivia",6],["Liam",15],["Zoë",4],["Lily",8],["Molly",12],["Mya",5],["Jaclyn",10],["Ava",14]]
 };
+const FACOVR={"12":{5:"Northern French"}};
+const facOf=cid=>(FACOVR[SEC]||{})[cid]||FACTION[cid];
 const FACTION={1:"Imperial",11:"Imperial",16:"Imperial",2:"Venetian",7:"Venetian",13:"Venetian",3:"Northern French",6:"Northern French",15:"Northern French",4:"Clerical",8:"Clerical",12:"Clerical",5:"Indeterminate",10:"Indeterminate",14:"Indeterminate"};
 const SHORT={1:"Boniface",11:"Oberto",16:"Berthold",2:"Dandolo",7:"Falier",13:"Barbo",3:"Baldwin",6:"Louis",15:"Geoffrey",4:"Nivelon",8:"John",12:"Martin",5:"Robert",10:"Anna",14:"Branas"};
 const QMAP=[{A:"Violence",B:"Piety",C:"Plunder",D:"Sacrilege"},{A:"Piety",B:"Sacrilege",C:"Violence",D:"Plunder"}];
@@ -159,7 +161,7 @@ function decode(){
   else{student="?";msgs.push(["warn",L+esc(CHARNAME[cid])+" isn’t played in Section "+SEC+". Wrong section?"])}
   if(seen[cid])msgs.push(["warn",L+"a second code for "+esc(CHARNAME[cid])+" (also line "+seen[cid]+")."]);seen[cid]=i+1;
   const q3=sc.q[2].find(x=>x[0]===ch[2]);
-  rows.push({line:i+1,student,cid,char:CHARNAME[cid],faction:FACTION[cid]||"—",scode,region:sc.r,pos:sc.p,ch,det,marks,collected,turned,kept:collected-turned,fama,nefas,q3:q3[1],votes:VOTES[scode+ch[2]]||"",tags:TAGS[scode+ch[2]]||[],code:base+"-"+turned});
+  rows.push({line:i+1,student,cid,char:CHARNAME[cid],faction:facOf(cid)||"—",scode,region:sc.r,pos:sc.p,ch,det,marks,collected,turned,kept:collected-turned,fama,nefas,q3:q3[1],votes:VOTES[scode+ch[2]]||"",tags:TAGS[scode+ch[2]]||[],code:base+"-"+turned});
  });
  const refusers=[];
  $("refusers").value.split("\n").map(s=>s.trim()).filter(Boolean).forEach(t=>{const f=findStudent(t);
@@ -195,7 +197,7 @@ function render(){
  const fs=v=>v>0?"<span class=pos>+"+v+"</span>":v<0?"<span class=neg>"+v+"</span>":"0";
  $("per").innerHTML="<tr><th>Student</th><th>Character</th><th>Position</th><th>Choices</th><th class=n>Collected</th><th class=n>Turned in</th><th class=n>Kept</th><th class=n>Fama</th><th class=n>Nefas</th><th>Q3 outcome</th></tr>"+
   rows.map(r=>"<tr><td><b>"+esc(r.student)+"</b></td><td>"+esc(r.char)+"<div class=fac>"+esc(r.faction)+"</div></td><td>"+esc(r.region)+" "+r.pos+"</td><td>"+r.ch.join("")+"<div class=fac>"+QMAP[0][r.ch[0]]+", "+QMAP[1][r.ch[1]]+"</div></td><td class=n>"+r.collected+"</td><td class=n>"+r.turned+"</td><td class=n>"+r.kept+"</td><td class=n>"+fs(r.fama)+"</td><td class=n>"+r.nefas+"</td><td>"+esc(r.q3)+(r.votes?"<div><span class='tag v'>"+esc(r.votes)+"</span></div>":"")+r.tags.map(t=>"<span class=tag>"+t+"</span>").join("")+"</td></tr>").join("")+
-  refusers.map(r=>"<tr><td><b>"+esc(r.student)+"</b></td><td>"+(r.cid?esc(CHARNAME[r.cid])+"<div class=fac>"+esc(FACTION[r.cid])+"</div>":"")+"</td><td colspan=8 class=fac>Refused to sack</td></tr>").join("");
+  refusers.map(r=>"<tr><td><b>"+esc(r.student)+"</b></td><td>"+(r.cid?esc(CHARNAME[r.cid])+"<div class=fac>"+esc(facOf(r.cid))+"</div>":"")+"</td><td colspan=8 class=fac>Refused to sack</td></tr>").join("");
  // outline
  const order=[...QUALS].sort((a,b)=>pct(b)-pct(a));
  let o="<h3>1 · The overall picture</h3><ul>"+order.map(q=>"<li><b>"+q+"</b> ("+pct(q).toFixed(0)+"%, "+band(pct(q))[1]+"): "+band(pct(q))[2].replace("%q",ADJ[q])+".</li>").join("")+"</ul>";
@@ -219,7 +221,7 @@ $("clear").onclick=()=>{$("codes").value="";$("refusers").value="";$("msgs").inn
 $("codes").addEventListener("input",keepInput);$("refusers").addEventListener("input",keepInput);
 $("csv1").onclick=()=>{if(!R)return;dl("Sack_Results_Sec"+SEC+".csv",[["Section","Student","Character","Faction","Code","Region","Position","Q1","Q2","Q3","Q1 quality","Q2 quality","Silver collected","Silver turned in","Silver kept","Fama","Nefas","Q3 outcome","Extra votes"],
  ...R.rows.map(r=>[SEC,r.student,r.char,r.faction,r.code,r.region,r.pos,r.ch[0],r.ch[1],r.ch[2],QMAP[0][r.ch[0]],QMAP[1][r.ch[1]],r.collected,r.turned,r.kept,r.fama,r.nefas,r.q3,r.votes]),
- ...R.refusers.map(r=>[SEC,r.student,r.cid?CHARNAME[r.cid]:"",r.cid?FACTION[r.cid]:"","REFUSED","","","","","","","",0,0,0,0,0,"Refused to sack",""])])};
+ ...R.refusers.map(r=>[SEC,r.student,r.cid?CHARNAME[r.cid]:"",r.cid?facOf(r.cid):"","REFUSED","","","","","","","",0,0,0,0,0,"Refused to sack",""])])};
 $("csv2").onclick=()=>{if(!R)return;const d=$("ldate").value||new Date().toISOString().slice(0,10);
  dl("Fama_Tracker_Sack_Sec"+SEC+".csv",[["Date","Section","Student","Type","Amount","Reason"],...R.rows.filter(r=>r.fama!==0).map(r=>[d,"Sec "+SEC,r.student,r.fama>0?"Earned":"Penalty",Math.abs(r.fama),"Sack: "+r.region+" pos "+r.pos])])};
 setSec(SEC,true);

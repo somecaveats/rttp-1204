@@ -71,7 +71,8 @@ const SECTIONS={"02":[1,11,2,7,15,3,6,4,8,12,5,10,14],"12":[1,11,16,2,7,3,6,15,4
 const ORD=["1st","2nd","3rd","4th","5th","6th"];
 const THE={G:"the Great Palace",B:"the Blachernae Palace",M:"the Merchant’s Quarter",P:"the Petrion District",R:"the Greek Residential Quarter"};
 const FACG={1:"♛",11:"♛",16:"♛",2:"⚓",7:"⚓",3:"⚜",6:"⚜",15:"⚜",4:"☩",8:"☩",12:"☩",5:"⚖",10:"⚖",14:"⚖"};
-const G=id=>`<span class="glyph">${FACG[id]}\uFE0E</span>`;
+const FACG_SEC={"12":{5:"⚜"}};
+const G=id=>`<span class="glyph">${((typeof S!=="undefined"&&FACG_SEC[S.sec])||{})[id]||FACG[id]}\uFE0E</span>`;
 const $=id=>document.getElementById(id);
 const esc=s=>String(s??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 let S={pass:"",sec:"",charId:null,state:null,status:{}};

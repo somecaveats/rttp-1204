@@ -181,6 +181,8 @@ const esc=s=>String(s??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&g
 const G=g=>`<span class="glyph">${g}︎</span>`;
 const FAC={"Imperial":"♛","Venetian":"⚓","Northern French":"⚜","Clerical":"☩","Indeterminate":"⚖"};
 const FACNAME={"Imperial":"Imperials","Venetian":"Venetians","Northern French":"N. French","Clerical":"Clerics","Indeterminate":"Indeterminates"};
+// Faction changes during the game, by section and character id
+const FACOVR={"12":{5:"Northern French"}};
 const CHAR={1:["Boniface of Montferrat","Imperial"],11:["Oberto of Biandrate","Imperial"],16:["Berthold of Katzenelnbogen","Imperial"],2:["Enrico Dandolo","Venetian"],7:["Angelo Falier","Venetian"],3:["Baldwin of Flanders","Northern French"],6:["Louis of Blois","Northern French"],15:["Geoffrey of Villehardouin","Northern French"],4:["Nivelon of Soissons","Clerical"],8:["John of Noyon","Clerical"],12:["Martin of Pairis","Clerical"],5:["Robert of Clari","Indeterminate"],10:["Empress Anna","Indeterminate"],14:["Theodore Branas","Indeterminate"]};
 const ROSTER={"02":[["Ethan",1],["Brendan",11],["Owen",2],["Stella",7],["Lucinda",15],["Emma",3],["Paddy",6],["Najla",4],["Carlos",8],["Montrell",12],["Alice",5],["Aniela",10],["Neha",14]],
 "12":[["Cameron",1],["Shrihith",11],["Mark",16],["Ashe",2],["Dary",7],["Sammy",3],["Olivia",6],["Liam",15],["Zoë",4],["Lily",8],["Molly",12],["Mya",5],["Jaclyn",10],["Ava",14]]};
@@ -194,10 +196,12 @@ const short=c=>{c=c||"";const m=NAMES.find(([k])=>c.includes(k));return m?m[1]:c
 const fullCap=k=>{const p=D().players.find(x=>capOf(x.char)===k);return p?p.char:k};
 const capOf=c=>CAPS.find(k=>new RegExp(k).test(c||""))||null;
 
-function fresh(sec){return{players:ROSTER[sec].map(([s,id],i)=>({id:sec+"-"+i,stu:s,char:CHAR[id][0],fac:CHAR[id][1],fama:0,wall:capOf(CHAR[id][0])?"cap":"land",vol:false,here:true})),sb:[],loaded:"",rounds:{1:{step:1,r:{}},2:{step:1,r:{}}},r3:{deal:"",pl:{},done:false,lost:false,clock:180,run:false},sack:{order:null,ch:{}}}}
+function fresh(sec){return{players:ROSTER[sec].map(([s,id],i)=>({id:sec+"-"+i,stu:s,char:CHAR[id][0],fac:(FACOVR[sec]||{})[id]||CHAR[id][1],fama:0,wall:capOf(CHAR[id][0])?"cap":"land",vol:false,here:true})),sb:[],loaded:"",rounds:{1:{step:1,r:{}},2:{step:1,r:{}}},r3:{deal:"",pl:{},done:false,lost:false,clock:180,run:false},sack:{order:null,ch:{}}}}
 let S={sec:"02",tab:"r1",setup:false,data:{}};
 try{const x=JSON.parse(localStorage.getItem("siege1"));if(x&&x.data)S=x}catch(e){}
 ["02","12"].forEach(s=>{if(!S.data[s])S.data[s]=fresh(s)});
+// apply faction changes to saved data too
+["02","12"].forEach(sec=>{const ov=FACOVR[sec]||{};ROSTER[sec].forEach(([st,id])=>{if(!ov[id])return;const p=S.data[sec].players.find(x=>x.stu===st);if(p)p.fac=ov[id]})});
 const save=()=>{try{localStorage.setItem("siege1",JSON.stringify(S))}catch(e){}};
 const D=()=>S.data[S.sec];
 const P=id=>D().players.find(p=>p.id===id);
@@ -473,6 +477,7 @@ $("file").onchange=async e=>{const f=e.target.files[0];if(!f)return;
     let n=0;["02","12"].forEach(sec=>{const d=S.data[sec];
       aoa.slice(hi+1).filter(r=>String(r[cS]).includes(sec)&&r[cN]).forEach(r=>{let p=d.players.find(x=>x.stu===String(r[cN]).trim());
         if(!p){const ch=String(r[cC]);p={id:sec+"-x"+d.players.length,stu:String(r[cN]).trim(),char:ch,fac:String(r[cF])||"Indeterminate",fama:0,wall:capOf(ch)?"cap":"land",vol:false,here:true};d.players.push(p)}
+        if(cF>=0&&String(r[cF]).trim())p.fac=String(r[cF]).trim();
         p.fama=calc?(+r[cSt]||0)+(calc[String(r[cS]).trim()+"|"+String(r[cN]).trim()]||0):(+r[cCur]||0);n++});d.loaded=f.name});
     save();render();flash(`Loaded fama for ${n} students${calc?" (worked out from the Ledger)":""}.`)}catch(err){flash("Couldn’t read that file: "+err)}
   e.target.value=""};
