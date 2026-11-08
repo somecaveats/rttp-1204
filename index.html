@@ -67,7 +67,7 @@ button:disabled{opacity:.45;cursor:not-allowed}
 <script src="sackdata.js"></script>
 <script>
 const CHARS={1:"Boniface of Montferrat",11:"Oberto of Biandrate",16:"Berthold of Katzenelnbogen",2:"Enrico Dandolo",7:"Angelo Falier",3:"Baldwin of Flanders",6:"Louis of Blois",15:"Geoffrey of Villehardouin",4:"Nivelon of Soissons",8:"John of Noyon",12:"Martin of Pairis",5:"Robert of Clari",10:"Empress Anna",14:"Theodore Branas"};
-const SECTIONS={"02":[1,11,2,7,15,3,6,4,8,12,5,10,14],"12":[1,11,16,2,7,3,6,15,4,8,12,5,10,14]};
+const SECTIONS={"02":[1,11,2,7,15,3,6,4,8,12,5,10,14],"12":[1,11,16,2,7,3,6,15,5,4,8,12,10,14]};
 const ORD=["1st","2nd","3rd","4th","5th","6th"];
 const THE={G:"the Great Palace",B:"the Blachernae Palace",M:"the Merchant’s Quarter",P:"the Petrion District",R:"the Greek Residential Quarter"};
 const FACG={1:"♛",11:"♛",16:"♛",2:"⚓",7:"⚓",3:"⚜",6:"⚜",15:"⚜",4:"☩",8:"☩",12:"☩",5:"⚖",10:"⚖",14:"⚖"};
@@ -167,7 +167,7 @@ function screenTurnIn(){
   $("app").innerHTML=`<h1>Back at the camp</h1>${pastHtml()}
   <div class="card"><h2>Your plunder</h2>
   <div class="stats"><div class="stat"><div class="n">${st.collected}</div><div class="l">marks of silver collected</div></div><div class="stat"><div class="n">${st.fama>0?"+":""}${st.fama}</div><div class="l">fama from your choices</div></div></div>
-  <p>The Pact requires plunder to go into the common pot. Venice is repaid first, and it’s repaid in full only if the pot reaches <b>100 marks for every crusader in your section</b>, whether or not they took part. What isn’t needed for Venice is divided as the Pact says. Whatever you keep, you keep.</p>
+  <p>The Pact requires plunder to go into the common pot. Venice is repaid first, and it’s repaid in full only if the pot reaches <b>100 marks for every crusader in your section</b>, whether or not they took part: <b>${(SECTIONS[S.sec].length*100).toLocaleString()} marks</b> for Section ${S.sec}. If the pot falls short, every crusader except the Venetians loses <b>1 <i>fama</i></b>. What isn’t needed for Venice is divided as the Pact says. Whatever you keep, you keep.</p>
   <label for="amt">How many marks do you turn in? (0 to ${st.collected})</label><input id="amt" type="number" min="0" max="${st.collected}" step="1" inputmode="numeric">
   <div class="row"><button class="primary" id="sub">Turn in</button></div><div class="err" id="err"></div></div>`;
   $("sub").onclick=async()=>{const v=$("amt").value.trim();const n=Number(v);
