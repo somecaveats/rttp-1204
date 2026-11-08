@@ -162,6 +162,9 @@ body:not(.ctlon) .so td.mv{display:none}
   <button id="loadBtn" title="Load the Fama Tracker (.xlsx), Totals tab">Load fama…</button>
   <input type="file" id="file" accept=".xlsx,.xls,.csv" class="hidden">
   <button id="setupBtn">Setup ▸</button>
+  <button id="expBtn" title="Save both sections’ siege setup and progress as a file, to open on another computer">Save to file</button>
+  <button id="impBtn" title="Open a siege file saved with “Save to file”">Open file…</button>
+  <input type="file" id="impFile" accept=".json" class="hidden">
   <span class="sep"></span>
   <span id="ctx"></span>
   <span class="sep"></span>
@@ -466,6 +469,14 @@ function flash(t){$("msg").textContent=t;clearTimeout(flash.t);flash.t=setTimeou
 $("secSel").onchange=e=>{S.sec=e.target.value;save();runClock();render()};
 $("setupBtn").onclick=()=>{S.setup=!S.setup;save();render()};
 $("loadBtn").onclick=()=>$("file").click();
+$("expBtn").onclick=()=>{const d=new Date(),stamp=`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}_${String(d.getHours()).padStart(2,"0")}${String(d.getMinutes()).padStart(2,"0")}`;
+  const a=document.createElement("a");a.href=URL.createObjectURL(new Blob([JSON.stringify({siege:1,saved:d.toISOString(),S},null,1)],{type:"application/json"}));a.download=`Siege_Setup_${stamp}.json`;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(a.href),2000);flash("Saved. Bring this file to class and use “Open file…”.")};
+$("impBtn").onclick=()=>$("impFile").click();
+$("impFile").onchange=async e=>{const f=e.target.files[0];e.target.value="";if(!f)return;
+  try{const x=JSON.parse(await f.text()),n=x&&x.S;if(!n||!n.data||!n.data["02"]||!n.data["12"])throw 0;
+    if(!confirm(`Replace everything in this tool (both sections) with “${f.name}”?`))return;
+    S=n;save();runClock();render();flash(`Opened ${f.name}.`)}
+  catch(err){flash("That isn’t a siege file saved with “Save to file”.")}};
 $("file").onchange=async e=>{const f=e.target.files[0];if(!f)return;
   try{const wb=XLSX.read(await f.arrayBuffer());const ws=wb.Sheets["Totals"]||wb.Sheets[wb.SheetNames[0]];
     const aoa=XLSX.utils.sheet_to_json(ws,{header:1,defval:""});const hi=aoa.findIndex(r=>r.includes("Student"));if(hi<0)throw"no Student column";
