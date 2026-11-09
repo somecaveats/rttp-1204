@@ -385,10 +385,10 @@ function renderR3(){
   if(r3.done)Rp+=`<div class="banner ok"><div class="big">The gates open</div><div class="sm">${deal?`${esc(short(deal.char))} leads the army in`:""}</div></div>`;
   else if(r3.lost)Rp+=`<div class="banner bad"><div class="big">The gates stay shut</div><div class="sm">The crusade collapses.</div></div>`;
   else Rp+=`<div class="clock ${r3.clock<=0?"zero":r3.clock<=30?"warn":""}">${m}:${String(s).padStart(2,"0")}</div>`;
-  Rp+=`<ul class="rules3"><li>The deal goes through one crusader, who must pledge at least 1 fama.</li><li>Anyone may pledge. Pledges are paid only if the gates open.</li><li>Order into the city: the one who made the deal (+1 fama), then those who paid, most first, then everyone else by fama.</li><li><b>If the gates stay shut, the crusade collapses: everyone loses all their fama.</b></li></ul>`;
+  Rp+=`<ul class="rules3"><li>The deal goes through one crusader, who must pledge at least 1 fama.</li><li>Anyone may pledge. Pledges are paid only if the gates open.</li><li>Order into the city: the one who made the deal (+1 fama), then those who paid, most first, then everyone else by fama.</li><li><b>The gates must open.</b> Keep bargaining until the price is met.</li></ul>`;
   const ready=deal&&dealPl>=1&&sum>=price;
   if(r3.done||r3.lost)Rp+=`<button class="gbtn undo" id="undoG">◂ Reopen</button>`;
-  else Rp+=`<button class="gbtn" id="openG"${ready?"":" disabled"}>Open the Gates</button>${!deal?'<div class="held">Choose who makes the deal (control bar).</div>':dealPl<1?`<div class="held">${esc(short(deal.char))} must pledge at least 1.</div>`:sum<price?`<div class="held">${price-sum} more fama needed.</div>`:""}<button class="gbtn shut" id="shutG">The gates stay shut</button>`;
+  else Rp+=`<button class="gbtn" id="openG"${ready?"":" disabled"}>Open the Gates</button>${!deal?'<div class="held">Choose who makes the deal (control bar).</div>':dealPl<1?`<div class="held">${esc(short(deal.char))} must pledge at least 1.</div>`:sum<price?`<div class="held">${price-sum} more fama needed.</div>`:""}`;
   $("main").className="";$("main").innerHTML=`<div class="panel">${L}</div><div class="panel">${Rp}</div>`;
   document.querySelectorAll(".pc input").forEach(inp=>inp.onchange=()=>{let v=parseInt(inp.value,10);const id=inp.dataset.id;
     if(v>now[id]){v=Math.max(0,now[id]);flash(`${short(P(id).char)} only has ${now[id]} fama.`)}
