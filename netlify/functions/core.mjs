@@ -116,6 +116,9 @@ async function admin(body, store, env) {
     await store.setJSON(asgKey(sec), clean);
   } else if (op === "reset") {
     await store.delete(recKey(sec, Number(body.charId)));
+  } else if (op === "reopen") {
+    const k = recKey(sec, Number(body.charId)); const r = await store.get(k, { type: "json" });
+    if (r && r.turnedIn != null) { r.log.push([now(), `turn-in reopened (was ${r.turnedIn})`]); r.turnedIn = null; delete r.code; r.updated = now(); await store.setJSON(k, r); }
   } else if (op === "resetall") {
     for (const id of SECTIONS[sec]) await store.delete(recKey(sec, id));
   } else if (op !== "list") return err("Unknown instructor request.");
